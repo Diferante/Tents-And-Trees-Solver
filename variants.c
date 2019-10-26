@@ -7,9 +7,9 @@
 #define D 4 // DESCONHECIDO
 #define max(a, b) a>b ? a : b
 #define min(a, b) a>b ? a : b
-#define CHECK_CANTO fscanf(fp, " %c", &c); if(c == T) return 1
-#define CHECK_LADO fscanf(fp, " %c", &c); if(c == T) return 1; if(c == A) sem_arvores = 0
-#define CHECK_CENTRO fscanf(fp, " %c", &c); if(c == A) return 1
+#define CHECK_CANTO fscanf(fp, " %c", &c); if(c == 'T') return 1
+#define CHECK_LADO fscanf(fp, " %c", &c); if(c == 'T') return 1; if(c == 'A') sem_arvores = 0
+#define CHECK_CENTRO fscanf(fp, " %c", &c); if(c == 'A') return 1
 
 
 int ver_adjacentes(char **camp, int L, int C, int l0, int c0, int ha_tendas) {
@@ -121,19 +121,25 @@ int solveB_fromFile(FILE *fp, int L, int C, int l0, int c0) {
     char sem_arvores = 1;
     char c;
 
-    if(l0 < 0 || l0 >= L || c0 < 0 || c0 >= C) return 1;
+    if(l0 < 0 || l0 >= L || c0 < 0 || c0 >= C) {
+        // Limpar os números antes de saír
+        do {
+            c = fgetc(fp);
+        } while(c != 'A' && c != 'T' && c != '.');
+        return 1;
+    }
 
     // Ler vetor tendas por linha
     for(i=0; i<l0; i++) fscanf(fp, " %*d");
     fscanf(fp, " %d", &l0_tents);
-    if(l0_tents == 0) return 1;
     for(i=l0+1; i<L; i++) fscanf(fp, " %*d");
 
     // Ler vetor tendas por coluna
     for(i=0; i<c0; i++) fscanf(fp, " %*d");
     fscanf(fp, " %d", &c0_tents);
-    if(c0_tents == 0) return 1;
     for(i=c0+1; i<C; i++) fscanf(fp, " %*d");
+
+    if(l0_tents == 0 || c0_tents == 0) return 1;
 
     // Ler matriz
 
@@ -141,7 +147,7 @@ int solveB_fromFile(FILE *fp, int L, int C, int l0, int c0) {
     for(i=0; i < l0 - 1; i++) {
         for(j=0; j<c0; j++) fscanf(fp, " %*c");
         fscanf(fp, " %c", &c);
-        if(c == T)
+        if(c == 'T')
             if(++somaC > c0_tents) return 1;
         for(j=c0+1; j<C; j++) fscanf(fp, " %*c");
     }
@@ -160,19 +166,19 @@ int solveB_fromFile(FILE *fp, int L, int C, int l0, int c0) {
 
     // Ler l0
     if(c0 != 0) {
-        for(j = 0; j < c0 - 1; j++){
+        for(j = 0; j < c0 - 1; j++) {
             fscanf(fp, " %c", &c);
-            if(c == T)
+            if(c == 'T')
                 if(++somaL > l0_tents) return 1;
         }
         CHECK_LADO;
     }
     CHECK_CENTRO;
     if(c0 != C - 1)  {
-        CHECK_CANTO;
+        CHECK_LADO;
         for(j =c0 + 2; j < C; j++) {
             fscanf(fp, " %c", &c);
-            if(c == T)
+            if(c == 'T')
                 if(++somaL > l0_tents) return 1;
         }
     }
@@ -198,7 +204,7 @@ int solveB_fromFile(FILE *fp, int L, int C, int l0, int c0) {
     for(i=l0+2; i < L; i++) {
         for(j=0; j<c0; j++) fscanf(fp, " %*c");
         fscanf(fp, " %c", &c);
-        if(c == T)
+        if(c == 'T')
             if(++somaC > c0_tents) return 1;
         for(j=c0+1; j<C; j++) fscanf(fp, " %*c");
     }

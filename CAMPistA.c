@@ -26,7 +26,8 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     int l0, c0;
     char variante;
     char resposta;
-    int ha_mais;
+
+    printf("olá, im here \n");
 
     fscanf(fp, " %d", &L);
     fscanf(fp, " %d", &C);
@@ -51,11 +52,17 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     }
 
     /* verificar se há mais problemas no ficheiro de entrada */
-    if(fscanf(fp, " %d", &ha_mais)==EOF) return;
-    else {
-        fseek(fp, -1L, SEEK_CUR);
-        LeituraDados(fp, fp2);
-    }
+
+    // Apagar potencial resto da matriz atual
+    do{
+        L = fgetc(fp);
+        if(L == EOF){
+            return;
+        }
+    }while(L < '0' || L > '9');
+    fseek(fp, -1L, SEEK_CUR);
+    LeituraDados(fp, fp2);
+
 }
 
 int main(int argc, char *argv[]) {
