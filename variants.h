@@ -1,6 +1,8 @@
 #ifndef VARIANTS_H_INCLUDED
 #define VARIANTS_H_INCLUDED
 
+#include <stdio.h>
+
 int solveB_fromFile(FILE *fp, int L, int C, int l0, int c0);
 int solveA_fromFile(FILE* fp, int L, int C);
 
