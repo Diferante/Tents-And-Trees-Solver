@@ -35,13 +35,13 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     /* falta meter o C */
     switch(variante) {
     case 'A':
-        resposta = solveA_fromFile(fp, L, C);
+        resposta = SolveAfromFile(fp, L, C);
         fprintf(fp2, "%d %d %c %d\n", L, C, variante, resposta);
         break;
     case 'B':
         fscanf(fp, " %d", &l0);
         fscanf(fp, " %d", &c0);
-        resposta = solveB_fromFile(fp, L, C, l0, c0);
+        resposta = SolveBfromFile(fp, L, C, l0, c0);
         fprintf(fp2, "%d %d %c %d %d %d\n", L, C, variante, l0, c0, resposta);
         break;
     default:
