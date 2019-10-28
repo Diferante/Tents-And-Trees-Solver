@@ -32,7 +32,6 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     fscanf(fp, " %d", &L);
     fscanf(fp, " %d", &C);
     fscanf(fp, " %c", &variante);
-    /* falta meter o C */
     switch(variante) {
     case 'A':
         resposta = SolveAfromFile(fp, L, C);
@@ -44,6 +43,10 @@ void LeituraDados(FILE* fp, FILE* fp2) {
         resposta = SolveBfromFile(fp, L, C, l0, c0);
         fprintf(fp2, "%d %d %c %d %d %d\n", L, C, variante, l0, c0, resposta);
         break;
+    case 'C':
+        resposta = SolveCfromFile(fp, L, C);
+        fprintf(fp2, "%d %d %c %d\n", L, C, variante, resposta);
+        break;
     default:
         resposta = -1;
         fprintf(fp2, "%d %d %c %d\n", L, C, variante, resposta);
@@ -54,12 +57,12 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     /* verificar se há mais problemas no ficheiro de entrada */
 
     // Apagar potencial resto da matriz atual
-    do{
+    do {
         L = fgetc(fp);
-        if(L == EOF){
+        if(L == EOF) {
             return;
         }
-    }while(L < '0' || L > '9');
+    } while(L < '0' || L > '9');
     fseek(fp, -1L, SEEK_CUR);
     LeituraDados(fp, fp2);
 

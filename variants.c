@@ -400,7 +400,7 @@ int VerSomasAdjacentes_fromFile(FILE *fp, int L, int C, int *Ltents, int *Ctents
     }
 
     // Resto das linhas
-    for ( i = 0; i < L; i++) {
+    for ( i = 1; i < L; i++) {
         matriz[i] = (char*) malloc(C*sizeof(char));
         if(matriz[i] == NULL) return -1;
         // célula (i, 0)
@@ -413,7 +413,7 @@ int VerSomasAdjacentes_fromFile(FILE *fp, int L, int C, int *Ltents, int *Ctents
             if(--Ctents[0] < 0) return 1;
         }
         // Resto da linha i excepto última
-        for ( j = 0; j < C - 1; j++) {
+        for ( j = 1; j < C - 1; j++) {
             fscanf(fp, " %c", &matriz[i][j]);
 
             if(matriz[i][j] == 'T') {
