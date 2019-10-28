@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define E 1 // ERVA
-#define A 2
-#define T 3
-#define D 4 // DESCONHECIDO
+#define E '.' // ERVA
+#define A 'A'
+#define T 'T'
+#define D '.' // DESCONHECIDO
 #define max(a, b) a>b ? a : b
 #define min(a, b) a>b ? a : b
 #define CHECK_CANTO fscanf(fp, " %c", &c); if(c == 'T') return 1
@@ -132,7 +132,7 @@ int SolveBfromFile(FILE *fp, int L, int C, int l0, int c0) {
         do {
             c = fgetc(fp);
         } while(c != 'A' && c != 'T' && c != '.');
-        return 1;
+        return -1;
     }
 
     // Ler vetor tendas por linha
@@ -241,7 +241,7 @@ int SolveAfromFile(FILE *fp, int L, int C) {
     for ( i = 0; i < L; i++) {
         for ( j = 0; j < C; j++) {
             fscanf(fp, " %c", &c);
-            if(c==A) arvores++;
+            if(c=='A') arvores++;
         }
     }
 

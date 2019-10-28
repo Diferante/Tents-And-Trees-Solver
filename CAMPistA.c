@@ -35,21 +35,25 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     switch(variante) {
     case 'A':
         resposta = SolveAfromFile(fp, L, C);
-        fprintf(fp2, "%d %d %c %d\n", L, C, variante, resposta);
+        fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
         break;
     case 'B':
         fscanf(fp, " %d", &l0);
         fscanf(fp, " %d", &c0);
         resposta = SolveBfromFile(fp, L, C, l0, c0);
-        fprintf(fp2, "%d %d %c %d %d %d\n", L, C, variante, l0, c0, resposta);
+        fprintf(fp2, "%d %d %c %d %d %d\n\n", L, C, variante, l0, c0, resposta);
         break;
     case 'C':
         resposta = SolveCfromFile(fp, L, C);
-        fprintf(fp2, "%d %d %c %d\n", L, C, variante, resposta);
+        fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
         break;
     default:
         resposta = -1;
-        fprintf(fp2, "%d %d %c %d\n", L, C, variante, resposta);
+        fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
+        // Limpar os números antes de saír
+        do {
+            L = fgetc(fp);
+        } while(L != 'A' && L != 'T' && L != '.');
         break;
 
     }
