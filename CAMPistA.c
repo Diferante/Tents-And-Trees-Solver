@@ -27,24 +27,23 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     char variante;
     char resposta;
 
-    printf("olá, im here \n");
-
     fscanf(fp, " %d", &L);
     fscanf(fp, " %d", &C);
     fscanf(fp, " %c", &variante);
+    InitSolver(fp, L, C);
     switch(variante) {
     case 'A':
-        resposta = SolveAfromFile(fp, L, C);
+        resposta = SolveAfromFile();
         fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
         break;
     case 'B':
         fscanf(fp, " %d", &l0);
         fscanf(fp, " %d", &c0);
-        resposta = SolveBfromFile(fp, L, C, l0, c0);
+        resposta = SolveBfromFile(l0, c0);
         fprintf(fp2, "%d %d %c %d %d %d\n\n", L, C, variante, l0, c0, resposta);
         break;
     case 'C':
-        resposta = SolveCfromFile(fp, L, C);
+        resposta = SolveCfromFile();
         fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
         break;
     default:
