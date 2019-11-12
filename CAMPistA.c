@@ -1,8 +1,8 @@
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "variants.h"
+#include <stdio.h>
 
+#include "variants.h"
 
 /* Abre o ficheiro */
 FILE *AbreFicheiro(char *ficheiro, char *mode) {

@@ -10,9 +10,9 @@ int L;
 int C;
 FILE *fp;
 
-void _free_matriz(){
+void _free_matriz() {
     int i;
-    for(i=0; i<L; i++){
+    for(i=0; i<L; i++) {
         free(Matriz[i]);
     }
     free(Matriz);
@@ -302,8 +302,12 @@ int SolveCfromFile() {
 
     Ltents = (int*) malloc(L*sizeof(int));
     if(Ltents == NULL) return -1;
+
     Ctents = (int*) malloc(C*sizeof(int));
-    if(Ctents == NULL) return -1;
+    if(Ctents == NULL) {
+        free(Ltents);
+        return -1;
+    }
 
     for(i=0; i<L; i++) {
         fscanf(fp, " %d", &Ltents[i]);
@@ -325,7 +329,10 @@ int SolveCfromFile() {
     for(i=0; i<L; i++) {
         for(j=0; j<C; j++) {
             if(Matriz[i][j] == 'T') {
-                if(isT_alone(i, j) == 1) return 1;
+                if(isT_alone(i, j) == 1) {
+                    _free_matriz();
+                    return 1;
+                }
             }
         }
     }

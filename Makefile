@@ -4,24 +4,10 @@ CC = gcc
 CFLAGS = -Wall -std=c99 -O3
 TARGET = campista
 
-# sources
-
-SOURCES = CAMPistA.c variants.c
-
-
-# object
-
-OBJECT = CAMPistA.o
-
+# objects (make automatically makes x.o from x.c)
+OBJECTS = CAMPistA.o variants.o
 
 
 campista: $(OBJECTS)
 
-	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES)
-
-
-CAMPistA.o: CAMPistA.c variants.c variants.h
-
-   
-
-
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
