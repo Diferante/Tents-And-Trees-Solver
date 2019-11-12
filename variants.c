@@ -1,26 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define E '.' // ERVA
-#define A 'A'
-#define T 'T'
-#define D '.' // DESCONHECIDO
-#define max(a, b) a>b ? a : b
-#define min(a, b) a>b ? a : b
 #define CHECK_CANTO fscanf(fp, " %c", &c); if(c == 'T') return 1
 #define CHECK_LADO fscanf(fp, " %c", &c); if(c == 'T') return 1; if(c == 'A') sem_arvores = 0
 #define CHECK_CENTRO fscanf(fp, " %c", &c); if(c == 'A') return 1
-
-//Macros para C recurrentes:
-#define DIR 0
-#define BAIXO 1
-#define ESQ 2
-#define CIMA 3
 
 char **Matriz;
 int L;
 int C;
 FILE *fp;
+
+void _free_matriz(){
+    int i;
+    for(i=0; i<L; i++){
+        free(Matriz[i]);
+    }
+    free(Matriz);
+}
 
 void InitSolver(FILE *fpointer, int Linhas, int Colunas) {
     fp = fpointer;
@@ -166,19 +162,19 @@ int SolveAfromFile() {
 
 // Descrição: Determina se esta tenda possui árvores adjacentes disponíveis.
 // Argumentos: Linha e coluna da tenda.
-// Retorno: 1 caso exista alguma tenda ilegal, 0 caso não exista, -1 caso ocorra um erro na alocação de memória.
-char T_sozinha(unsigned char l0, unsigned char c0) {
+// Retorno: 1 caso tenda não tenha árvore disponível, N caso ocorra um erro na alocação de memória.
+char isT_alone(unsigned char l0, unsigned char c0) {
     Matriz[l0][c0] = '.';
     // Ver a direita
     if(c0!=C-1) {
         if(Matriz[l0][c0+1] == 'A') {
             Matriz[l0][c0+1] = '.';
             if(c0==C-2)
-                return 'N';
+                return 0;
             if(Matriz[l0][c0+2] != 'T')
-                return 'N';
-            if(T_sozinha(l0, c0+2) == 'N')
-                return 'N';
+                return 0;
+            if(isT_alone(l0, c0+2) == 0)
+                return 0;
         }
     }
     // Ver em baixo
@@ -186,11 +182,11 @@ char T_sozinha(unsigned char l0, unsigned char c0) {
         if(Matriz[l0+1][c0] == 'A') {
             Matriz[l0+1][c0] = '.';
             if(l0==L-2)
-                return 'N';
+                return 0;
             if(Matriz[l0+2][c0] != 'T')
-                return 'N';
-            if(T_sozinha(l0+2, c0) == 'N')
-                return 'N';
+                return 0;
+            if(isT_alone(l0+2, c0) == 0)
+                return 0;
         }
     }
     // Ver a esquerda
@@ -198,11 +194,11 @@ char T_sozinha(unsigned char l0, unsigned char c0) {
         if(Matriz[l0][c0-1] == 'A') {
             Matriz[l0][c0-1] = '.';
             if(c0==1)
-                return 'N';
+                return 0;
             if(Matriz[l0][c0-2] != 'T')
-                return 'N';
-            if(T_sozinha(l0, c0-2) == 'N')
-                return 'N';
+                return 0;
+            if(isT_alone(l0, c0-2) == 0)
+                return 0;
         }
     }
     // Ver em cima
@@ -210,15 +206,15 @@ char T_sozinha(unsigned char l0, unsigned char c0) {
         if(Matriz[l0-1][c0] == 'A') {
             Matriz[l0-1][c0] = '.';
             if(l0==1)
-                return 'N';
+                return 0;
             if(Matriz[l0-2][c0] != 'T')
-                return 'N';
-            if(T_sozinha(l0-2, c0) == 'N')
-                return 'N';
+                return 0;
+            if(isT_alone(l0-2, c0) == 0)
+                return 0;
         }
     }
 
-    return 'S';
+    return 1;
 }
 
 
@@ -318,15 +314,22 @@ int SolveCfromFile() {
 
     /* Carregar mapa e avaliar somas e tendas adjacentes */
     res = VerSomasAdjacentes_fromFile(Ltents, Ctents);
-    if(res != 0) return res;
+    free(Ltents);
+    free(Ctents);
+
+    if(res != 0) {
+        _free_matriz();
+        return res;
+    }
 
     for(i=0; i<L; i++) {
         for(j=0; j<C; j++) {
             if(Matriz[i][j] == 'T') {
-                if(T_sozinha(i, j) == 'S') return 1;
+                if(isT_alone(i, j) == 1) return 1;
             }
         }
     }
+    _free_matriz();
     return 0;
 }
 
