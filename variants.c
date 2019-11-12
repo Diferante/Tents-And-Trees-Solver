@@ -31,7 +31,7 @@ void InitSolver(FILE *fpointer, int Linhas, int Colunas) {
 int SolveBfromFile(int l0, int c0) {
     int i, j;
     int l0_tents, c0_tents;
-    int somaC = 0, somaL = 0;
+    int somaC = 1, somaL = 1;
     char sem_arvores = 1;
     char c;
 
