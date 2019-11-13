@@ -9,6 +9,8 @@ char **Matriz;
 int L;
 int C;
 FILE *fp;
+/*unsigned char* stack;
+long int massi= 0;*/
 
 void _free_matriz() {
     int i;
@@ -165,6 +167,10 @@ int SolveAfromFile() {
 // Argumentos: Linha e coluna da tenda.
 // Retorno: 1 caso tenda não tenha árvore disponível, N caso ocorra um erro na alocação de memória.
 char isT_alone(unsigned char l0, unsigned char c0) {
+    /*if(stack-&c0 > massi) {
+        massi = stack - &c0;
+        printf("stack at %li\n", massi);
+    }*/
     Matriz[l0][c0] = '.';
     // Ver a direita
     if(c0!=C-1) {
@@ -330,6 +336,7 @@ int SolveCfromFile() {
     for(i=0; i<L; i++) {
         for(j=0; j<C; j++) {
             if(Matriz[i][j] == 'T') {
+                //stack = (unsigned char*) &res;
                 if(isT_alone(i, j) == 1) {
                     _free_matriz();
                     return 1;
