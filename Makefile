@@ -1,12 +1,12 @@
 # compiler
 
 CC = gcc
-CFLAGS = -Wall -std=c99 -O3
+CFLAGS = -Wall -std=c99 -g
 TARGET = campista
 export TARGET
 
 # objects (make automatically makes x.o from x.c)
-OBJECTS = CAMPistA.o variants.o
+OBJECTS = CAMPistA.o variants.o charStack.o
 
 
 campista: $(OBJECTS)
@@ -14,7 +14,7 @@ campista: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
 test:
 	printf "Starting checks;\n"
-	find tests/ -maxdepth 1 -name "*.camp0" -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
+	find tests/ -maxdepth 1 -name "*.camp0"  -execdir echo {} \; -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
 	printf "done;\n"
 
 check:

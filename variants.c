@@ -7,10 +7,10 @@
 #define CHECK_LADO if(fscanf(fp, " %c", &c) != 1) exit(0); if(c == 'T') return 1; if(c == 'A') sem_arvores = 0
 #define CHECK_CENTRO if(fscanf(fp, " %c", &c) != 1) exit(0); if(c == 'A') return 1
 
-#define DIR 1 // direita, esquerda, cima e baixo
-#define ESQ -1
-#define CIMA 2
-#define BAIXO -2
+#define DIR 2 // direita, esquerda, cima e baixo
+#define ESQ -2
+#define CIMA 1
+#define BAIXO -1
 
 char **Matriz;
 int L;
@@ -231,16 +231,15 @@ char isT_alone(unsigned char l0, unsigned char c0) {
     return 1;
 }
 
-void move_dir(int* l_out, int* c_out, unsigned char dir){
+void move_dir(int* l_out, int* c_out, char dir){
     if(dir== CIMA){
         *l_out += -2;
     } else if( dir == BAIXO) {
         *l_out += 2;
     } else if( dir == ESQ) {
         *c_out += -2;
-    } else if( dir == DIR) {
+    } else
         *c_out += 2;
-    }
 }
 
 
@@ -267,6 +266,7 @@ char isT_alone_iter(int l0, int c0) {
                 }
                 push(from);
                 from = ESQ;
+                move_dir(&l0, &c0, DIR);
                 continue;
             }
         }
@@ -284,6 +284,7 @@ char isT_alone_iter(int l0, int c0) {
                 }
                 push(from);
                 from = CIMA;
+                move_dir(&l0, &c0, BAIXO);
                 continue;
             }
         }
@@ -301,6 +302,7 @@ char isT_alone_iter(int l0, int c0) {
                 }
                 push(from);
                 from = DIR;
+                move_dir(&l0, &c0, ESQ);
                 continue;
             }
         }
@@ -319,6 +321,7 @@ char isT_alone_iter(int l0, int c0) {
 
                 push(from);
                 from = BAIXO;
+                move_dir(&l0, &c0, CIMA);
                 continue;
             }
         }
