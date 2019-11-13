@@ -13,10 +13,14 @@ campista: $(OBJECTS)
 
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
 test:
+	printf "Starting checks;\n"
 	find tests/ -maxdepth 1 -name "*.camp0" -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
+	printf "done;\n"
 
 check:
-	find tests/ -maxdepth 1 -name "*.tents0" -exec diff {} s/{} \;
+	printf "Starting checks;\n"
+	find tests/ -maxdepth 1 -name "*.tents0" -execdir diff {} s/{} \; -execdir echo {} \;
+	printf "done;\n"
 
 clean:
 	rm -f *.o
