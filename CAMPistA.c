@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
     /* verificar se o ficheiro de entrada tem extensão '.camp0' */
     p=strrchr(argv[1], '.');
-    if(strcmp(p, ".camp0")) exit(0);
+    if(p == NULL || strcmp(p, ".camp0")) exit(0);
 
     /*Abertura do ficheiro de entrada*/
     fp=AbreFicheiro(argv[1], "r");

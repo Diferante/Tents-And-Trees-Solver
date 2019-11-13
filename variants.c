@@ -13,15 +13,18 @@
 #define BAIXO -1
 
 char **Matriz;
-int L;
-int C;
+unsigned int L;
+unsigned int C;
 FILE *fp;
 /*unsigned char* stack;
 long int massi= 0;*/
 
 void _free_matriz() {
     int i;
+
+    if(Matriz == NULL) return;
     for(i=0; i<L; i++) {
+        if(Matriz[i] == NULL) break;
         free(Matriz[i]);
     }
     free(Matriz);
@@ -173,7 +176,7 @@ int SolveAfromFile() {
 // Descrição: Determina se esta tenda possui árvores adjacentes disponíveis.
 // Argumentos: Linha e coluna da tenda.
 // Retorno: 1 caso tenda não tenha árvore disponível, N caso ocorra um erro na alocação de memória.
-char isT_alone(unsigned char l0, unsigned char c0) {
+char isT_alone(unsigned int l0, unsigned int c0) {
     /*if(stack-&c0 > massi) {
         massi = stack - &c0;
         printf("stack at %li\n", massi);
@@ -337,10 +340,10 @@ char isT_alone_iter(int l0, int c0) {
 // Argumentos: Ficheiro com o problema apontando para o início da matriz, número de linhas, número de colunas
 //             vetores de tendas, por linhas e por colunas, e endereço onde escrever o endereço da matriz criada.
 // Retorno: 1 caso exista alguma tenda ilegal, 0 caso não exista, -1 caso ocorra um erro na alocação de memória.
-int VerSomasAdjacentes_fromFile(int *Ltents, int *Ctents) {
+int VerSomasAdjacentes_fromFile( int *Ltents, int *Ctents) {
     int i, j;
 
-    Matriz = (char**) malloc(L*sizeof(char*));
+    Matriz = (char**) calloc(L, sizeof(char*));
     if(Matriz == NULL) return -1;
 
     // linha 0
