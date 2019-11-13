@@ -1,9 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "charStack.h"
+
 #define CHECK_CANTO if(fscanf(fp, " %c", &c) != 1) exit(0); if(c == 'T') return 1
 #define CHECK_LADO if(fscanf(fp, " %c", &c) != 1) exit(0); if(c == 'T') return 1; if(c == 'A') sem_arvores = 0
 #define CHECK_CENTRO if(fscanf(fp, " %c", &c) != 1) exit(0); if(c == 'A') return 1
+
+#define DIR 1 // direita, esquerda, cima e baixo
+#define ESQ -1
+#define CIMA 2
+#define BAIXO -2
 
 char **Matriz;
 int L;
@@ -224,6 +231,103 @@ char isT_alone(unsigned char l0, unsigned char c0) {
     return 1;
 }
 
+void move_dir(int* l_out, int* c_out, unsigned char dir){
+    if(dir== CIMA){
+        *l_out += -2;
+    } else if( dir == BAIXO) {
+        *l_out += 2;
+    } else if( dir == ESQ) {
+        *c_out += -2;
+    } else if( dir == DIR) {
+        *c_out += 2;
+    }
+}
+
+
+// Descrição: Determina se esta tenda possui árvores adjacentes disponíveis.
+// Argumentos: Linha e coluna da tenda.
+// Retorno: 0 caso a tenda tenha árvore disponível, 1 caso contrário.
+char isT_alone_iter(int l0, int c0) {
+    char from = 0;
+
+    initStack();
+    while(1) {
+        Matriz[l0][c0] = '.';
+        // Ver a direita
+        if(c0!=C-1) {
+            if(Matriz[l0][c0+1] == 'A') {
+                Matriz[l0][c0+1] = '.';
+                if(c0==C-2) {
+                    freeStack();
+                    return 0;
+                }
+                if(Matriz[l0][c0+2] != 'T') {
+                    freeStack();
+                    return 0;
+                }
+                push(from);
+                from = ESQ;
+                continue;
+            }
+        }
+        // Ver a baixo
+        if(l0!=L-1) {
+            if(Matriz[l0+1][c0] == 'A') {
+                Matriz[l0+1][c0] = '.';
+                if(l0==L-2) {
+                    freeStack();
+                    return 0;
+                }
+                if(Matriz[l0+2][c0] != 'T')  {
+                    freeStack();
+                    return 0;
+                }
+                push(from);
+                from = CIMA;
+                continue;
+            }
+        }
+        // Ver a esquerda
+        if(c0!=0) {
+            if(Matriz[l0][c0-1] == 'A') {
+                Matriz[l0][c0-1] = '.';
+                if(c0==1) {
+                    freeStack();
+                    return 0;
+                }
+                if(Matriz[l0][c0-2] != 'T') {
+                    freeStack();
+                    return 0;
+                }
+                push(from);
+                from = DIR;
+                continue;
+            }
+        }
+        // Ver a cima
+        if(l0!=0) {
+            if(Matriz[l0-1][c0] == 'A') {
+                Matriz[l0-1][c0] = '.';
+                if(l0==1) {
+                    freeStack();
+                    return 0;
+                }
+                if(Matriz[l0-2][c0] != 'T') {
+                    freeStack();
+                    return 0;
+                }
+
+                push(from);
+                from = BAIXO;
+                continue;
+            }
+        }
+        if(from == 0) return 1;
+        move_dir(&l0, &c0, from);
+        from = pop();
+    }
+}
+
 
 // Descrição: Cria uma matriz para o mapa e determina se há tendas ilegais, no que toca a somatórios por
 //            linhas/colunas e adjacência entre tendas, lendo diretamente do ficheiro.
@@ -337,7 +441,7 @@ int SolveCfromFile() {
         for(j=0; j<C; j++) {
             if(Matriz[i][j] == 'T') {
                 //stack = (unsigned char*) &res;
-                if(isT_alone(i, j) == 1) {
+                if(isT_alone_iter(i, j) == 1) {
                     _free_matriz();
                     return 1;
                 }

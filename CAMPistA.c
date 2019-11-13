@@ -14,41 +14,41 @@ FILE *AbreFicheiro(char *ficheiro, char *mode) {
 }
 
 /* Escreve os dados no ficheiro de saída */
-void EscreveFicheiro(int L, int C, char variant, int resposta, FILE *fp2) {
-    fprintf(fp2, "%d %d %c %d\n", L, C, variant, resposta);
+void EscreveFicheiro(int L, int CIMA, char variant, int resposta, FILE *fp2) {
+    fprintf(fp2, "%d %d %c %d\n", L, CIMA, variant, resposta);
     return;
 }
 
 
 /*Função que lê e analisa os dados do ficheiro de entrada*/
 void LeituraDados(FILE* fp, FILE* fp2) {
-    int L, C;
+    int L, CIMA;
     int l0, c0;
     char variante;
     char resposta;
 
     if( fscanf(fp, " %d", &L) != 1) exit(0);
-    if( fscanf(fp, " %d", &C) != 1) exit(0);
+    if( fscanf(fp, " %d", &CIMA) != 1) exit(0);
     if( fscanf(fp, " %c", &variante) != 1) exit(0);
-    InitSolver(fp, L, C);
+    InitSolver(fp, L, CIMA);
     switch(variante) {
     case 'A':
         resposta = SolveAfromFile();
-        fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
+        fprintf(fp2, "%d %d %c %d\n\n", L, CIMA, variante, resposta);
         break;
     case 'B':
         if( fscanf(fp, " %d", &l0) != 1) exit(0);
         if( fscanf(fp, " %d", &c0) != 1) exit(0);
         resposta = SolveBfromFile(l0, c0);
-        fprintf(fp2, "%d %d %c %d %d %d\n\n", L, C, variante, l0, c0, resposta);
+        fprintf(fp2, "%d %d %c %d %d %d\n\n", L, CIMA, variante, l0, c0, resposta);
         break;
-    case 'C':
+    case 'CIMA':
         resposta = SolveCfromFile();
-        fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
+        fprintf(fp2, "%d %d %c %d\n\n", L, CIMA, variante, resposta);
         break;
     default:
         resposta = -1;
-        fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
+        fprintf(fp2, "%d %d %c %d\n\n", L, CIMA, variante, resposta);
         // Limpar os números antes de saír
         do {
             L = fgetc(fp);
