@@ -27,9 +27,9 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     char variante;
     char resposta;
 
-    fscanf(fp, " %d", &L);
-    fscanf(fp, " %d", &C);
-    fscanf(fp, " %c", &variante);
+    if( fscanf(fp, " %d", &L) != 1) exit(0);
+    if( fscanf(fp, " %d", &C) != 1) exit(0);
+    if( fscanf(fp, " %c", &variante) != 1) exit(0);
     InitSolver(fp, L, C);
     switch(variante) {
     case 'A':
@@ -37,8 +37,8 @@ void LeituraDados(FILE* fp, FILE* fp2) {
         fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
         break;
     case 'B':
-        fscanf(fp, " %d", &l0);
-        fscanf(fp, " %d", &c0);
+        if( fscanf(fp, " %d", &l0) != 1) exit(0);
+        if( fscanf(fp, " %d", &c0) != 1) exit(0);
         resposta = SolveBfromFile(l0, c0);
         fprintf(fp2, "%d %d %c %d %d %d\n\n", L, C, variante, l0, c0, resposta);
         break;
