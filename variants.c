@@ -447,7 +447,7 @@ int SolveCfromFile() {
         for(j=0; j<C; j++) {
             if(Matriz[i][j] == 'T') {
                 //stack = (unsigned char*) &res;
-                if(isT_alone_iter(i, j) == 1) {
+                if(isT_alone(i, j) == 1) {
                     _free_matriz();
                     return 1;
                 }

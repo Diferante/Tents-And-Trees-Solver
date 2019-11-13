@@ -13,13 +13,14 @@ campista: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
 
 test:
+	rm -f tests/*.tents0
 	printf "Starting tests;\n"
 	find tests/ -maxdepth 1 -name "*.camp0"  -exec echo {} \; -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
 	printf "done;\n"
 
 check:
 	printf "Starting checks;\n"
-	find tests/ -maxdepth 1 -name "*.tents0" -execdir diff {} s/{} \; -execdir echo {} \;
+	find tests/ -maxdepth 1 -name "*.tents0" -execdir echo Errors in {}: \; -execdir diff {} s/{} \; 
 	printf "done;\n"
 
 testmem: 
@@ -30,7 +31,7 @@ testmem:
 
 testtime:
 	printf "Starting time check;\n"
-	for n in {1..39}; do ./$(TARGET) memtests.camp0; done
+	time for n in {1..10}; do ./$(TARGET) memtests.camp0; done
 	printf "done;\n"
 
 
