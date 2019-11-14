@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include "charStack.h"
 
 #define CHECK_CANTO if(fscanf(fp, " %c", &c) != 1) exit(0); if(c == 'T') return 1
@@ -234,8 +234,8 @@ char isT_alone(unsigned int l0, unsigned int c0) {
     return 1;
 }
 
-void move_dir(int* l_out, int* c_out, char dir){
-    if(dir== CIMA){
+void move_dir(int* l_out, int* c_out, char dir) {
+    if(dir== CIMA) {
         *l_out += -2;
     } else if( dir == BAIXO) {
         *l_out += 2;
@@ -334,30 +334,59 @@ char isT_alone_iter(int l0, int c0) {
     }
 }
 
-
-// Descrição: Cria uma matriz para o mapa e determina se há tendas ilegais, no que toca a somatórios por
-//            linhas/colunas e adjacência entre tendas, lendo diretamente do ficheiro.
-// Argumentos: Ficheiro com o problema apontando para o início da matriz, número de linhas, número de colunas
-//             vetores de tendas, por linhas e por colunas, e endereço onde escrever o endereço da matriz criada.
-// Retorno: 1 caso exista alguma tenda ilegal, 0 caso não exista, -1 caso ocorra um erro na alocação de memória.
-int VerSomasAdjacentes_fromFile( int *Ltents, int *Ctents) {
-    int i, j;
+// Descrição:
+// Argumentos:
+// Retorno: 1
+int Fill_Matriz_fromFile() {
+    int i=0, j=0, b;
+    int nbytes;
+#define BUFFER_SIZE 1024
+    char buffer[BUFFER_SIZE];
 
     Matriz = (char**) calloc(L, sizeof(char*));
     if(Matriz == NULL) return -1;
-
-    // linha 0
     Matriz[0] = (char*) malloc(C*sizeof(char));
     if(Matriz[0] == NULL) return -1;
-    // célula (0, 0)
-    if(fscanf(fp, " %c", &Matriz[0][0]) != 1) exit(0);
+    while(!feof(fp)) {
+        nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+        b=-1;
+        while(1) {
+            // Skip whitespaces and such;
+            for(b++; b < nbytes; b++) if(buffer[b] == 'A' || buffer[b] == 'T' || buffer[b] == '.')break;
+
+            if(nbytes==b) break;
+
+            Matriz[i][j] = buffer[b];
+            if(j == C - 1) {
+                j=0;
+                if(++i == L){
+                    fseek(fp, nbytes -1 -b, SEEK_CUR);
+                    return 0;
+                }
+                Matriz[i] = (char*) malloc(C*sizeof(char));
+                if(Matriz[i] == NULL) return -1;
+            } else {
+                j++;
+            }
+        }
+    }
+    return -1;
+}
+
+// Descrição: Determina se há tendas ilegais, no que toca a somatórios por
+//            linhas/colunas e adjacência entre tendas.
+// Argumentos: Ficheiro com o problema apontando para o início da matriz, número de linhas, número de colunas
+//             vetores de tendas, por linhas e por colunas, e endereço onde escrever o endereço da matriz criada.
+// Retorno: 1 caso exista alguma tenda ilegal, 0 caso não exista, -1 caso ocorra um erro na alocação de memória.
+int VerSomasAdjacentes_fromMatrix( int *Ltents, int *Ctents) {
+    int i, j;
+
     if(Matriz[0][0] == 'T') {
         if(--Ltents[0] < 0) return 1;
         if(--Ctents[0] < 0) return 1;
     }
     // Resto da linha 0
     for ( j = 1; j < C; j++) {
-        if(fscanf(fp, " %c", &Matriz[0][j]) != 1) exit(0);
         if(Matriz[0][j] == 'T') {
             // Ver tendas adjacentes na parte já lida da matriz.
             if(Matriz[0][j-1] == 'T')
@@ -366,13 +395,9 @@ int VerSomasAdjacentes_fromFile( int *Ltents, int *Ctents) {
             if(--Ctents[j] < 0) return 1;
         }
     }
-
     // Resto das linhas
     for ( i = 1; i < L; i++) {
-        Matriz[i] = (char*) malloc(C*sizeof(char));
-        if(Matriz[i] == NULL) return -1;
         // célula (i, 0)
-        if(fscanf(fp, " %c", &Matriz[i][0]) != 1) exit(0);
         if(Matriz[i][0] == 'T') {
             // Ver tendas adjacentes na parte já lida da matriz.
             if( Matriz[i-1][0] == 'T' || Matriz[i-1][1] == 'T')
@@ -382,8 +407,6 @@ int VerSomasAdjacentes_fromFile( int *Ltents, int *Ctents) {
         }
         // Resto da linha i excepto última
         for ( j = 1; j < C - 1; j++) {
-            if(fscanf(fp, " %c", &Matriz[i][j]) != 1) exit(0);
-
             if(Matriz[i][j] == 'T') {
                 // Ver tendas adjacentes na parte já lida da matriz.
                 if(Matriz[i-1][j-1] == 'T' || Matriz[i-1][j] == 'T' ||
@@ -394,7 +417,6 @@ int VerSomasAdjacentes_fromFile( int *Ltents, int *Ctents) {
             }
         }
         // célula (i, C-1)
-        if(fscanf(fp, " %c", &Matriz[i][C-1]) != 1) exit(0);
         if(Matriz[i][C-1] == 'T') {
             // Ver tendas adjacentes na parte já lida da matriz.
             if(Matriz[i-1][C-2] == 'T' || Matriz[i-1][C-1] == 'T' ||
@@ -416,7 +438,6 @@ int SolveCfromFile() {
     int res;
 
 
-
     Ltents = (int*) malloc(L*sizeof(int));
     if(Ltents == NULL) return -1;
 
@@ -427,17 +448,22 @@ int SolveCfromFile() {
     }
 
     for(i=0; i<L; i++) {
-        if(fscanf(fp, " %d", &Ltents[i]) != 1) exit(0);
+        res = fscanf(fp, " %d", &Ltents[i]);
     }
     for(i=0; i<C; i++) {
-        if(fscanf(fp, " %d", &Ctents[i]) != 1) exit(0);
+        res = fscanf(fp, " %d", &Ctents[i]);
     }
-
     /* Carregar mapa e avaliar somas e tendas adjacentes */
-    res = VerSomasAdjacentes_fromFile(Ltents, Ctents);
+    res = Fill_Matriz_fromFile();
+    res = -1;
+
+    if(res != 0) {
+        _free_matriz();
+        return res;
+    }
+    res = VerSomasAdjacentes_fromMatrix(Ltents, Ctents);
     free(Ltents);
     free(Ctents);
-
     if(res != 0) {
         _free_matriz();
         return res;
@@ -447,7 +473,7 @@ int SolveCfromFile() {
         for(j=0; j<C; j++) {
             if(Matriz[i][j] == 'T') {
                 //stack = (unsigned char*) &res;
-                if(isT_alone(i, j) == 1) {
+                if(isT_alone_iter(i, j) == 1) {
                     _free_matriz();
                     return 1;
                 }

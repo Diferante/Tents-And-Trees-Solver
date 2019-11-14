@@ -1,7 +1,7 @@
 # compiler
 
 CC = gcc
-CFLAGS = -Wall -std=c99 -O3
+CFLAGS = -Wall -std=c99 -g
 TARGET = campista
 export TARGET
 

@@ -24,51 +24,43 @@ void EscreveFicheiro(int L, int C, char variant, int resposta, FILE *fp2) {
 void LeituraDados(FILE* fp, FILE* fp2) {
     int L, C;
     int l0, c0;
-    char variante;
-    char resposta;
+    char variante, resposta;
 
-    if( fscanf(fp, " %d", &L) != 1) exit(0);
-    if( fscanf(fp, " %d", &C) != 1) exit(0);
-    if( fscanf(fp, " %c", &variante) != 1) exit(0);
-    InitSolver(fp, L, C);
-    switch(variante) {
-    case 'A':
-        resposta = SolveAfromFile();
-        fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
-        break;
-    case 'B':
-        if( fscanf(fp, " %d", &l0) != 1) exit(0);
-        if( fscanf(fp, " %d", &c0) != 1) exit(0);
-        resposta = SolveBfromFile(l0, c0);
-        fprintf(fp2, "%d %d %c %d %d %d\n\n", L, C, variante, l0, c0, resposta);
-        break;
-    case 'C':
-        resposta = SolveCfromFile();
-        fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
-        break;
-    default:
-        resposta = -1;
-        fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
-        // Limpar os números antes de saír
+    while(1) {
+        if( fscanf(fp, " %d %d %c", &L, &C, &variante) != 3) exit(0);
+        InitSolver(fp, L, C);
+        switch(variante) {
+        case 'A':
+            resposta = SolveAfromFile();
+            fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
+            break;
+        case 'B':
+            if( fscanf(fp, " %d", &l0) != 1) exit(0);
+            if( fscanf(fp, " %d", &c0) != 1) exit(0);
+            resposta = SolveBfromFile(l0, c0);
+            fprintf(fp2, "%d %d %c %d %d %d\n\n", L, C, variante, l0, c0, resposta);
+            break;
+        case 'C':
+            resposta = SolveCfromFile();
+            fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
+            break;
+        default:
+            resposta = -1;
+            fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
+            // Limpar os números antes de saír
+            do {
+                L = fgetc(fp);
+            } while(L != 'A' && L != 'T' && L != '.');
+            break;
+        }
+
+        /* verificar se há mais problemas no ficheiro de entrada */
         do {
             L = fgetc(fp);
-        } while(L != 'A' && L != 'T' && L != '.');
-        break;
-
+            if(feof(fp)) return;
+        } while(L < '0' || L > '9');
+        fseek(fp, -1L, SEEK_CUR);
     }
-
-    /* verificar se há mais problemas no ficheiro de entrada */
-
-    // Apagar potencial resto da matriz atual
-    do {
-        L = fgetc(fp);
-        if(L == EOF) {
-            return;
-        }
-    } while(L < '0' || L > '9');
-    fseek(fp, -1L, SEEK_CUR);
-    LeituraDados(fp, fp2);
-
 }
 
 int main(int argc, char *argv[]) {
