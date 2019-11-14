@@ -338,9 +338,9 @@ char isT_alone_iter(int l0, int c0) {
 // Argumentos:
 // Retorno: 1
 int Fill_Matriz_fromFile() {
+#define BUFFER_SIZE 25
     int i=0, j=0, b;
     int nbytes;
-#define BUFFER_SIZE 1024
     char buffer[BUFFER_SIZE];
 
     Matriz = (char**) calloc(L, sizeof(char*));
@@ -352,15 +352,18 @@ int Fill_Matriz_fromFile() {
         b=-1;
         while(1) {
             // Skip whitespaces and such;
-            for(b++; b < nbytes; b++) if(buffer[b] == 'A' || buffer[b] == 'T' || buffer[b] == '.')break;
+            for(b++; b < nbytes; b++) {
+                if(buffer[b] == 'A' || buffer[b] == 'T' || buffer[b] == '.')
+                    break;
+            }
 
             if(nbytes==b) break;
 
             Matriz[i][j] = buffer[b];
             if(j == C - 1) {
                 j=0;
-                if(++i == L){
-                    fseek(fp, nbytes -1 -b, SEEK_CUR);
+                if(++i == L) {
+                    nbytes = fseek(fp, 1 +b -nbytes , SEEK_CUR);
                     return 0;
                 }
                 Matriz[i] = (char*) malloc(C*sizeof(char));
@@ -455,7 +458,6 @@ int SolveCfromFile() {
     }
     /* Carregar mapa e avaliar somas e tendas adjacentes */
     res = Fill_Matriz_fromFile();
-    res = -1;
 
     if(res != 0) {
         _free_matriz();

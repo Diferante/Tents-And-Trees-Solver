@@ -53,13 +53,17 @@ void LeituraDados(FILE* fp, FILE* fp2) {
             } while(L != 'A' && L != 'T' && L != '.');
             break;
         }
-
+        C = 0;
         /* verificar se há mais problemas no ficheiro de entrada */
         do {
             L = fgetc(fp);
             if(feof(fp)) return;
+            //if(L == '\n'){
+            //    C++;
+            //}
         } while(L < '0' || L > '9');
         fseek(fp, -1L, SEEK_CUR);
+        //printf(" %d\n", C);
     }
 }
 
@@ -75,7 +79,7 @@ int main(int argc, char *argv[]) {
     if(p == NULL || strcmp(p, ".camp0")) exit(0);
 
     /*Abertura do ficheiro de entrada*/
-    fp=AbreFicheiro(argv[1], "r");
+    fp=AbreFicheiro(argv[1], "rb");
 
     /*Alocar memória para o nome do ficheiro de saída*/
     ficheirosaida = (char*)malloc((strlen(argv[1])+ 2)*sizeof(char));
