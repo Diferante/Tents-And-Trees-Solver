@@ -12,7 +12,7 @@
 #define CIMA 1
 #define BAIXO -1
 
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 1024
 
 char **Matriz;
 unsigned int L;
