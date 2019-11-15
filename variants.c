@@ -144,16 +144,15 @@ int SolveBfromFile(int l0, int c0) {
 
         // Centro e adjacentes
         if(i == l0 && j == c0) {
-            if(buffer[b] == 'A'){
+            if(buffer[b] == 'A') {
                 fseek(fp, 1 +b -nbytes , SEEK_CUR);
                 return 1;
             }
         } else if(i >= l0 -1 && i <= l0 + 1 && j >= c0 -1 && j <= c0 + 1) {
-            if(buffer[b] == 'T'){
+            if(buffer[b] == 'T') {
                 fseek(fp, 1 +b -nbytes , SEEK_CUR);
                 return 1;
-            }
-            else if((i == l0 || j == c0) && buffer[b] == 'A')
+            } else if((i == l0 || j == c0) && buffer[b] == 'A')
                 sem_arvores = 0;
         }
         if(j == C - 1) {
@@ -176,10 +175,10 @@ int SolveBfromFile(int l0, int c0) {
 // Argumentos: Ficheiro com o problema apontando para depois de 'A', número de linhas e número de colunas.
 // Retorno: 0 caso seja detetada a inadmissibilidade do problema, 1 caso contrário.
 int SolveAfromFile() {
-    int i, j;
-    int somaL = 0, somaC = 0;
+    int i, j, b;
+    int nbytes, somaL = 0, somaC = 0;
     int arvores = 0;
-    char c;
+    char buffer[BUFFER_SIZE];
 
     for(i=0; i<L; i++) {
         if(fscanf(fp, " %d", &j) != 1) exit(0);
@@ -193,79 +192,39 @@ int SolveAfromFile() {
     /* Verifica admissiblidade do jogo */
     if(somaC != somaL) return 0;
 
-    for ( i = 0; i < L; i++) {
-        for ( j = 0; j < C; j++) {
-            if(fscanf(fp, " %c", &c) != 1) exit(0);
-            if(c=='A') arvores++;
+    i=0, j=0;
+
+    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+    b = -1;
+    while(1) {
+        // Skip whitespaces and such;
+        for(b++; b < nbytes; b++) {
+            if(buffer[b] == 'A' || buffer[b] == 'T' || buffer[b] == '.')
+                break;
+        }
+
+        if(nbytes==b) {
+            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+            if(nbytes == 0)
+                return -1;
+            b = -1;
+            continue;
+        }
+
+        if(buffer[b]=='A') arvores++;
+        if(j == C - 1) {
+            j=0;
+            if(++i == L) {
+                fseek(fp, 1 +b -nbytes , SEEK_CUR);
+                break;
+            }
+        } else {
+            j++;
         }
     }
-
-    /* Verifica admissiblidade do jogo */
-    if(somaL > arvores) return 0;
-
+    if(somaL>arvores) return 0;
     return 1;
 
-}
-
-// Descrição: Determina se esta tenda possui árvores adjacentes disponíveis.
-// Argumentos: Linha e coluna da tenda.
-// Retorno: 1 caso tenda não tenha árvore disponível, N caso ocorra um erro na alocação de memória.
-char isT_alone(unsigned int l0, unsigned int c0) {
-    /*if(stack-&c0 > massi) {
-        massi = stack - &c0;
-        printf("stack at %li\n", massi);
-    }*/
-    Matriz[l0][c0] = '.';
-    // Ver a direita
-    if(c0!=C-1) {
-        if(Matriz[l0][c0+1] == 'A') {
-            Matriz[l0][c0+1] = '.';
-            if(c0==C-2)
-                return 0;
-            if(Matriz[l0][c0+2] != 'T')
-                return 0;
-            if(isT_alone(l0, c0+2) == 0)
-                return 0;
-        }
-    }
-    // Ver em baixo
-    if(l0!=L-1) {
-        if(Matriz[l0+1][c0] == 'A') {
-            Matriz[l0+1][c0] = '.';
-            if(l0==L-2)
-                return 0;
-            if(Matriz[l0+2][c0] != 'T')
-                return 0;
-            if(isT_alone(l0+2, c0) == 0)
-                return 0;
-        }
-    }
-    // Ver a esquerda
-    if(c0!=0) {
-        if(Matriz[l0][c0-1] == 'A') {
-            Matriz[l0][c0-1] = '.';
-            if(c0==1)
-                return 0;
-            if(Matriz[l0][c0-2] != 'T')
-                return 0;
-            if(isT_alone(l0, c0-2) == 0)
-                return 0;
-        }
-    }
-    // Ver em cima
-    if(l0!=0) {
-        if(Matriz[l0-1][c0] == 'A') {
-            Matriz[l0-1][c0] = '.';
-            if(l0==1)
-                return 0;
-            if(Matriz[l0-2][c0] != 'T')
-                return 0;
-            if(isT_alone(l0-2, c0) == 0)
-                return 0;
-        }
-    }
-
-    return 1;
 }
 
 void move_dir(int* l_out, int* c_out, char dir) {

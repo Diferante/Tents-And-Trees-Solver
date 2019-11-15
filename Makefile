@@ -1,7 +1,7 @@
 # compiler
 
 CC = gcc
-CFLAGS = -Wall -std=c99 -g
+CFLAGS = -Wall -std=c99 -O3
 TARGET = campista
 export TARGET
 
@@ -31,7 +31,7 @@ testmem:
 
 testtime:
 	printf "Starting time check;\n"
-	time for n in {1..10}; do ./$(TARGET) memtests.camp0; done
+	time for n in {1..100}; do ./$(TARGET) memtests.camp0; done
 	printf "done;\n"
 
 
