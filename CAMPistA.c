@@ -4,7 +4,7 @@
 
 #include "variants.h"
 
-#define BUFFER_SIZE 100
+#define BUFFER_SIZE 128
 /* Abre o ficheiro */
 FILE *AbreFicheiro(char *ficheiro, char *mode) {
     FILE *fp;
