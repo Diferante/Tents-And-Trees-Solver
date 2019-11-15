@@ -12,6 +12,8 @@
 #define CIMA 1
 #define BAIXO -1
 
+#define BUFFER_SIZE 25
+
 char **Matriz;
 unsigned int L;
 unsigned int C;
@@ -36,19 +38,64 @@ void InitSolver(FILE *fpointer, int Linhas, int Colunas) {
     C = Colunas;
 }
 
+// Descrição:
+// Argumentos:
+// Retorno: 0 se ler bem, -1 se chegar ao fim do ficheiro ou erro de alocação.
+int Fill_Matriz_fromFile() {
+    int i=0, j=0, b;
+    int nbytes;
+    char buffer[BUFFER_SIZE];
+
+    Matriz = (char**) calloc(L, sizeof(char*));
+    if(Matriz == NULL) return -1;
+    Matriz[0] = (char*) malloc(C*sizeof(char));
+    if(Matriz[0] == NULL) return -1;
+
+    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+    b = -1;
+    while(1) {
+        // Skip whitespaces and such;
+        for(b++; b < nbytes; b++) {
+            if(buffer[b] == 'A' || buffer[b] == 'T' || buffer[b] == '.')
+                break;
+        }
+
+        if(nbytes==b) {
+            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+            if(nbytes == 0)
+                return -1;
+            b = -1;
+            continue;
+        }
+
+        Matriz[i][j] = buffer[b];
+        if(j == C - 1) {
+            j=0;
+            if(++i == L) {
+                fseek(fp, 1 +b -nbytes , SEEK_CUR);
+                return 0;
+            }
+            Matriz[i] = (char*) malloc(C*sizeof(char));
+            if(Matriz[i] == NULL) return -1;
+        } else {
+            j++;
+        }
+    }
+}
 
 // Descrição: Determina se pode existir uma tenda nas coordenadas fornecidas, de acordo com os critérios de B,
 //            lendo diretamente do ficheiro.
 // Argumentos: Ficheiro com o problema apontando para depois de "B l0 c0", linha e coluna.
 // Retorno: 1 caso seja detetada a impossibilidade de existir uma tenda, 0 caso contrário.
 int SolveBfromFile(int l0, int c0) {
-    int i, j;
+    int i, j, b;
+    int nbytes;
     int l0_tents, c0_tents;
     int somaC = 1, somaL = 1;
     char sem_arvores = 1;
-    char c;
+    char c, buffer[BUFFER_SIZE];
 
-    if(l0 < 0 || l0 >= L || c0 < 0 || c0 >= C) {
+    if(l0 < 0 || l0 >= L || c0 < 0 || c0 >= C ) {
         // Limpar os números antes de saír
         do {
             c = fgetc(fp);
@@ -66,75 +113,62 @@ int SolveBfromFile(int l0, int c0) {
     if(fscanf(fp, " %d", &c0_tents) != 1) exit(0);
     for(i=c0+1; i<C; i++) if(fscanf(fp, " %*d") != 0) exit(0);
 
-    if(l0_tents == 0 || c0_tents == 0) return 1;
+    if(l0_tents == 0 || c0_tents == 0)
+        return 1;
 
-    // Ler matriz
+    i =0;
+    j=0;
+    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+    b = -1;
+    while(1) {
+        // Skip whitespaces and such;
+        for(b++; b < nbytes; b++) {
+            if(buffer[b] == 'A' || buffer[b] == 'T' || buffer[b] == '.')
+                break;
+        }
 
-    // Ler linhas antes dos adjacentes de (l0, c0)
-    for(i=0; i < l0 - 1; i++) {
-        for(j=0; j<c0; j++) if(fscanf(fp, " %*c") != 0) exit(0);
-        if(fscanf(fp, " %c", &c) != 1) exit(0);
-        if(c == 'T')
-            if(++somaC > c0_tents) return 1;
-        for(j=c0+1; j<C; j++) if(fscanf(fp, " %*c") != 0) exit(0);
-    }
-    if(l0 != 0) {
-        // Ler l0 - 1
-        if(c0 != 0) {
-            for(j = 0; j < c0 - 1; j++) if(fscanf(fp, " %*c") != 0) exit(0);
-            CHECK_CANTO;
-        }
-        CHECK_LADO;
-        if(c0 != C - 1)  {
-            CHECK_CANTO;
-            for(j =c0 + 2; j < C; j++) if(fscanf(fp, " %*c") != 0) exit(0);
-        }
-    }
+        if(nbytes==b) {
+            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+            if(nbytes == 0)
+                return -1;
+            b = -1;
+            continue;
 
-    // Ler l0
-    if(c0 != 0) {
-        for(j = 0; j < c0 - 1; j++) {
-            if(fscanf(fp, " %c", &c) != 1) exit(0);
-            if(c == 'T')
-                if(++somaL > l0_tents) return 1;
         }
-        CHECK_LADO;
-    }
-    CHECK_CENTRO;
-    if(c0 != C - 1)  {
-        CHECK_LADO;
-        for(j =c0 + 2; j < C; j++) {
-            if(fscanf(fp, " %c", &c) != 1) exit(0);
-            if(c == 'T')
-                if(++somaL > l0_tents) return 1;
+        // Fora dos adjacentes
+        if((i < l0 - 1 || i > l0 + 1) && j == c0 && buffer[b]=='T') {
+            somaC++;
+        } else if((j < c0 - 1 || j > c0 + 1) && i == l0 && buffer[b]=='T') {
+            somaL++;
         }
-    }
 
-    if(l0 != L - 1) {
-        // Ler l0 + 1
-        if(c0 != 0) {
-            for(j = 0; j < c0 - 1; j++) if(fscanf(fp, " %*c") != 0) exit(0);
-            CHECK_CANTO;
+        // Centro e adjacentes
+        if(i == l0 && j == c0) {
+            if(buffer[b] == 'A'){
+                fseek(fp, 1 +b -nbytes , SEEK_CUR);
+                return 1;
+            }
+        } else if(i >= l0 -1 && i <= l0 + 1 && j >= c0 -1 && j <= c0 + 1) {
+            if(buffer[b] == 'T'){
+                fseek(fp, 1 +b -nbytes , SEEK_CUR);
+                return 1;
+            }
+            else if((i == l0 || j == c0) && buffer[b] == 'A')
+                sem_arvores = 0;
         }
-        CHECK_LADO;
-
-        if(sem_arvores == 1) return 1;
-        if(c0 != C - 1)  {
-            CHECK_CANTO;
-            for(j =c0 + 2; j < C; j++) if(fscanf(fp, " %*c") != 0) exit(0);
+        if(j == C - 1) {
+            j=0;
+            if(++i == L) {
+                fseek(fp, 1 +b -nbytes , SEEK_CUR);
+                break;
+            }
+        } else {
+            j++;
         }
     }
 
     if(sem_arvores == 1) return 1;
-
-    // Ler linhas depois dos adjacentes de (l0, c0)
-    for(i=l0+2; i < L; i++) {
-        for(j=0; j<c0; j++) if(fscanf(fp, " %*c") != 0) exit(0);
-        if(fscanf(fp, " %c", &c) != 1) exit(0);
-        if(c == 'T')
-            if(++somaC > c0_tents) return 1;
-        for(j=c0+1; j<C; j++) if(fscanf(fp, " %*c") != 0) exit(0);
-    }
+    if(somaC > c0_tents || somaL > l0_tents) return 1;
     return 0;
 }
 
@@ -251,8 +285,11 @@ void move_dir(int* l_out, int* c_out, char dir) {
 // Retorno: 0 caso a tenda tenha árvore disponível, 1 caso contrário.
 char isT_alone_iter(int l0, int c0) {
     char from = 0;
-
-    initStack();
+    unsigned int initial_size = L + C;
+    if(initial_size > 1024) {
+        initial_size = 1024;
+    }
+    initStack(initial_size);
     while(1) {
         Matriz[l0][c0] = '.';
         // Ver a direita
@@ -328,53 +365,15 @@ char isT_alone_iter(int l0, int c0) {
                 continue;
             }
         }
-        if(from == 0) return 1;
+        if(from == 0) {
+            freeStack();
+            return 1;
+        }
         move_dir(&l0, &c0, from);
         from = pop();
     }
 }
 
-// Descrição:
-// Argumentos:
-// Retorno: 1
-int Fill_Matriz_fromFile() {
-#define BUFFER_SIZE 25
-    int i=0, j=0, b;
-    int nbytes;
-    char buffer[BUFFER_SIZE];
-
-    Matriz = (char**) calloc(L, sizeof(char*));
-    if(Matriz == NULL) return -1;
-    Matriz[0] = (char*) malloc(C*sizeof(char));
-    if(Matriz[0] == NULL) return -1;
-    while(!feof(fp)) {
-        nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
-        b=-1;
-        while(1) {
-            // Skip whitespaces and such;
-            for(b++; b < nbytes; b++) {
-                if(buffer[b] == 'A' || buffer[b] == 'T' || buffer[b] == '.')
-                    break;
-            }
-
-            if(nbytes==b) break;
-
-            Matriz[i][j] = buffer[b];
-            if(j == C - 1) {
-                j=0;
-                if(++i == L) {
-                    nbytes = fseek(fp, 1 +b -nbytes , SEEK_CUR);
-                    return 0;
-                }
-                Matriz[i] = (char*) malloc(C*sizeof(char));
-                if(Matriz[i] == NULL) return -1;
-            } else {
-                j++;
-            }
-        }
-    }
-    return -1;
-}
 
 // Descrição: Determina se há tendas ilegais, no que toca a somatórios por
 //            linhas/colunas e adjacência entre tendas.
@@ -440,7 +439,6 @@ int SolveCfromFile() {
     int * Ltents, *Ctents;
     int res;
 
-
     Ltents = (int*) malloc(L*sizeof(int));
     if(Ltents == NULL) return -1;
 
@@ -461,6 +459,8 @@ int SolveCfromFile() {
 
     if(res != 0) {
         _free_matriz();
+        free(Ltents);
+        free(Ctents);
         return res;
     }
     res = VerSomasAdjacentes_fromMatrix(Ltents, Ctents);

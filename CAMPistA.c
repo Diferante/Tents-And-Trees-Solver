@@ -4,6 +4,7 @@
 
 #include "variants.h"
 
+#define BUFFER_SIZE 100
 /* Abre o ficheiro */
 FILE *AbreFicheiro(char *ficheiro, char *mode) {
     FILE *fp;
@@ -19,6 +20,33 @@ void EscreveFicheiro(int L, int C, char variant, int resposta, FILE *fp2) {
     return;
 }
 
+// Descrição:
+// Argumentos:
+// Retorno: 1 se há mais problemas, 0 se não.
+int Ha_mais_problemas(FILE* fp) {
+    int b;
+    int nbytes;
+    char buffer[BUFFER_SIZE];
+    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+    b = -1;
+    while(1) {
+        // Clear all untill number;
+        for(b++; b < nbytes; b++) {
+            if(buffer[b] >= '0' && buffer[b] <= '9'){
+                fseek(fp, b - nbytes , SEEK_CUR);
+                return 1;
+            }
+
+        }
+        if(nbytes==b) {
+            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+            if(nbytes == 0)
+                return 0;
+            b = -1;
+            continue;
+        }
+    }
+}
 
 /*Função que lê e analisa os dados do ficheiro de entrada*/
 void LeituraDados(FILE* fp, FILE* fp2) {
@@ -27,7 +55,9 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     char variante, resposta;
 
     while(1) {
-        if( fscanf(fp, " %d %d %c", &L, &C, &variante) != 3) exit(0);
+        if( fscanf(fp, " %d", &L) != 1) exit(0);
+        if( fscanf(fp, " %d", &C) != 1) exit(0);
+        if( fscanf(fp, " %c", &variante) != 1) exit(0);
         InitSolver(fp, L, C);
         switch(variante) {
         case 'A':
@@ -53,17 +83,10 @@ void LeituraDados(FILE* fp, FILE* fp2) {
             } while(L != 'A' && L != 'T' && L != '.');
             break;
         }
-        C = 0;
+
         /* verificar se há mais problemas no ficheiro de entrada */
-        do {
-            L = fgetc(fp);
-            if(feof(fp)) return;
-            //if(L == '\n'){
-            //    C++;
-            //}
-        } while(L < '0' || L > '9');
-        fseek(fp, -1L, SEEK_CUR);
-        //printf(" %d\n", C);
+        if(!Ha_mais_problemas(fp))
+            break;
     }
 }
 
