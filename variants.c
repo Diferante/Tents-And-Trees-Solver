@@ -83,35 +83,112 @@ int Fill_Matriz_fromFile() {
     }
 }
 
+// Descrição: Preenche os vetores de tendas por linha e por coluna;
+// Argumentos:
+// Retorno: 0 se ler bem, -1 se chegar ao fim do ficheiro.
+int Fill_Hints_fromFile(int *Ltents, int *Ctents) {
+    int i, j=0, b;
+    int nbytes, offset, res;
+    char *end_ptr, buffer[BUFFER_SIZE + 1];
+
+    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+    b = -1;
+    j=0;
+    offset = 0;
+    buffer[BUFFER_SIZE] = '\n';
+    while(1) {
+        // Skip whitespaces and such;
+        for(b++; b - offset< nbytes; b++) {
+            if(buffer[b] >= '0' && buffer[b] <= '9')
+                break;
+        }
+
+        if(nbytes==b-offset) {
+            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+            if(nbytes == 0)
+                return -1;
+            offset = 0;
+            b = -1;
+            continue;
+        }
+        res = strtol(buffer+b, &end_ptr, 10);
+        if(end_ptr == &buffer[BUFFER_SIZE]) {
+            offset = end_ptr - buffer - b;
+            for(i=0; i<offset; i++)
+                buffer[i] = buffer[b+i];
+            nbytes = fread(buffer + offset, 1, BUFFER_SIZE-offset, fp);
+            res = strtol(buffer, &end_ptr, 10);
+        }
+        b = end_ptr - buffer - 1;
+
+        if(j < L)
+            Ltents[j] = res;
+        else if(j - L <  C)
+            Ctents[j-L] = res;
+
+        if(++j == L + C) {
+            fseek(fp, 1 +b - offset -nbytes , SEEK_CUR);
+            return 0;
+        }
+    }
+}
+
 // Descrição: Determina se pode existir uma tenda nas coordenadas fornecidas, de acordo com os critérios de B,
 //            lendo diretamente do ficheiro.
 // Argumentos: Ficheiro com o problema apontando para depois de "B l0 c0", linha e coluna.
 // Retorno: 1 caso seja detetada a impossibilidade de existir uma tenda, 0 caso contrário.
 int SolveBfromFile(int l0, int c0) {
     int i, j, b;
-    int nbytes;
-    int l0_tents, c0_tents;
+    int nbytes, offset, res;
+    int l0_tents=0, c0_tents=0;
     int somaC = 1, somaL = 1;
     char sem_arvores = 1;
-    char c, buffer[BUFFER_SIZE];
+    char *end_ptr, buffer[BUFFER_SIZE+1];
 
-    if(l0 < 0 || l0 >= L || c0 < 0 || c0 >= C ) {
-        // Limpar os números antes de saír
-        do {
-            c = fgetc(fp);
-        } while(c != 'A' && c != 'T' && c != '.');
-        return -1;
+    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+    b = -1;
+    j=0;
+    offset = 0;
+    buffer[BUFFER_SIZE] = '\n';
+    while(1) {
+        // Skip whitespaces and such;
+        for(b++; b - offset< nbytes; b++) {
+            if(buffer[b] >= '0' && buffer[b] <= '9')
+                break;
+        }
+
+        if(nbytes==b-offset) {
+            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+            if(nbytes == 0)
+                return -1;
+            offset = 0;
+            b = -1;
+            continue;
+        }
+        res = strtol(buffer+b, &end_ptr, 10);
+        if(end_ptr == &buffer[BUFFER_SIZE]) {
+            offset = end_ptr - buffer - b;
+            for(i=0; i<offset; i++)
+                buffer[i] = buffer[b+i];
+            nbytes = fread(buffer + offset, 1, BUFFER_SIZE-offset, fp);
+            res = strtol(buffer, &end_ptr, 10);
+        }
+        b = end_ptr - buffer - 1;
+
+        if(j == l0 )
+            l0_tents = res;
+        else if(j == L + c0)
+            c0_tents = res;
+
+        if(++j == L + C) {
+            fseek(fp, 1 +b - offset -nbytes , SEEK_CUR);
+            break;
+        }
     }
 
-    // Ler vetor tendas por linha
-    for(i=0; i<l0; i++) if(fscanf(fp, " %*d") != 0) exit(0);
-    if(fscanf(fp, " %d", &l0_tents) != 1) exit(0);
-    for(i=l0+1; i<L; i++) if(fscanf(fp, " %*d") != 0) exit(0);
-
-    // Ler vetor tendas por coluna
-    for(i=0; i<c0; i++) if(fscanf(fp, " %*d") != 0) exit(0);
-    if(fscanf(fp, " %d", &c0_tents) != 1) exit(0);
-    for(i=c0+1; i<C; i++) if(fscanf(fp, " %*d") != 0) exit(0);
+    if(l0 < 0 || l0 >= L || c0 < 0 || c0 >= C ) {
+        return -1;
+    }
 
     if(l0_tents == 0 || c0_tents == 0)
         return 1;
@@ -177,10 +254,54 @@ int SolveBfromFile(int l0, int c0) {
 int SolveAfromFile() {
     int i, j, b;
     int nbytes, somaL = 0, somaC = 0;
-    int arvores = 0;
-    char buffer[BUFFER_SIZE];
+    int arvores = 0, res, offset;
+    char buffer[BUFFER_SIZE+1], *end_ptr;
 
-    for(i=0; i<L; i++) {
+    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+    b = -1;
+    j=0;
+    offset = 0;
+    buffer[BUFFER_SIZE] = '\n';
+    while(1) {
+        // Skip whitespaces and such;
+        for(b++; b - offset< nbytes; b++) {
+            if(buffer[b] >= '0' && buffer[b] <= '9')
+                break;
+        }
+
+        if(nbytes==b-offset) {
+            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
+            if(nbytes == 0)
+                return -1;
+            offset = 0;
+            b = -1;
+            continue;
+        }
+        res = strtol(buffer+b, &end_ptr, 10);
+        if(end_ptr == &buffer[BUFFER_SIZE]) {
+            offset = end_ptr - buffer - b;
+            for(i=0; i<offset; i++)
+                buffer[i] = buffer[b+i];
+            nbytes = fread(buffer + offset, 1, BUFFER_SIZE-offset, fp);
+            res = strtol(buffer, &end_ptr, 10);
+        }
+        b = end_ptr - buffer - 1;
+
+        if(j < L)
+            somaL += res;
+        else
+            somaC += res;
+
+
+
+        if(++j == L + C) {
+            fseek(fp, 1 +b - offset -nbytes , SEEK_CUR);
+            break;
+        }
+
+    }
+
+    /*for(i=0; i<L; i++) {
         if(fscanf(fp, " %d", &j) != 1) exit(0);
         somaL += j;
     }
@@ -188,7 +309,7 @@ int SolveAfromFile() {
     for(i=0; i<C; i++) {
         if(fscanf(fp, "%d", &j) != 1) exit(0);
         somaC += j;
-    }
+    }*/
     /* Verifica admissiblidade do jogo */
     if(somaC != somaL) return 0;
 
@@ -407,11 +528,12 @@ int SolveCfromFile() {
         return -1;
     }
 
-    for(i=0; i<L; i++) {
-        res = fscanf(fp, " %d", &Ltents[i]);
-    }
-    for(i=0; i<C; i++) {
-        res = fscanf(fp, " %d", &Ctents[i]);
+    res = Fill_Hints_fromFile(Ltents, Ctents);
+
+    if(res != 0) {
+        free(Ltents);
+        free(Ctents);
+        return res;
     }
     /* Carregar mapa e avaliar somas e tendas adjacentes */
     res = Fill_Matriz_fromFile();

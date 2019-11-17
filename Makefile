@@ -12,7 +12,10 @@ OBJECTS = CAMPistA.o variants.o charStack.o
 campista: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
 
-test:
+debug: CFLAGS = -Wall -std=c99 -g
+debug: campista
+
+test: 
 	rm -f tests/*.tents0
 	printf "Starting tests;\n"
 	find tests/ -maxdepth 1 -name "*.camp0"  -exec echo {} \; -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
@@ -23,11 +26,17 @@ check:
 	find tests/ -maxdepth 1 -name "*.tents0" -execdir echo Errors in {}: \; -execdir diff {} s/{} \; 
 	printf "done;\n"
 
-testmem: 
+testmem:
 	reset
 	rm -f massifreport
 	valgrind  --main-stacksize=20000000 --stacks=yes --threshold=10.0 --massif-out-file=massifreport --tool=massif ./$(TARGET) memtests.camp0 
-	ms_print --threshold=10.0 massifreport 
+	ms_print --threshold=10.0 massifreport
+
+testa:
+	printf "Starting time check;\n"
+	time for n in {1..10}; do ./$(TARGET) teste_017.camp0; done
+	diff teste_017.tents0 teste_017.sol
+	printf "done;\n"
 
 testtime:
 	printf "Starting time check;\n"
