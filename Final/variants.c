@@ -21,23 +21,6 @@ FILE *fp;
 /*unsigned char* stack;
 long int massi= 0;*/
 
-void _free_matriz() {
-    int i;
-
-    if(Matriz == NULL) return;
-    for(i=0; i<L; i++) {
-        if(Matriz[i] == NULL) break;
-        free(Matriz[i]);
-    }
-    free(Matriz);
-}
-
-void InitSolver(FILE *fpointer, int Linhas, int Colunas) {
-    fp = fpointer;
-    L = Linhas;
-    C = Colunas;
-}
-
 // Descrição:
 // Argumentos:
 // Retorno: 0 se ler bem, -1 se chegar ao fim do ficheiro ou erro de alocação.

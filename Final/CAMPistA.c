@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "variants.h"
+#include "TentsSolver.h"
 
 #define BUFFER_SIZE 1024
 /* Abre o ficheiro */
@@ -51,38 +51,12 @@ int Ha_mais_problemas(FILE* fp) {
 /*Função que lê e analisa os dados do ficheiro de entrada*/
 void LeituraDados(FILE* fp, FILE* fp2) {
     int L, C;
-    int l0, c0;
-    char variante, resposta;
 
     while(1) {
         if( fscanf(fp, " %d", &L) != 1) exit(0);
         if( fscanf(fp, " %d", &C) != 1) exit(0);
-        if( fscanf(fp, " %c", &variante) != 1) exit(0);
         InitSolver(fp, L, C);
-        switch(variante) {
-        case 'A':
-            resposta = SolveAfromFile();
-            fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
-            break;
-        case 'B':
-            if( fscanf(fp, " %d", &l0) != 1) exit(0);
-            if( fscanf(fp, " %d", &c0) != 1) exit(0);
-            resposta = SolveBfromFile(l0, c0);
-            fprintf(fp2, "%d %d %c %d %d %d\n\n", L, C, variante, l0, c0, resposta);
-            break;
-        case 'C':
-            resposta = SolveCfromFile();
-            fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
-            break;
-        default:
-            resposta = -1;
-            fprintf(fp2, "%d %d %c %d\n\n", L, C, variante, resposta);
-            // Limpar os números antes de saír
-            do {
-                L = fgetc(fp);
-            } while(L != 'A' && L != 'T' && L != '.');
-            break;
-        }
+        Solver();
 
         /* verificar se há mais problemas no ficheiro de entrada */
         if(!Ha_mais_problemas(fp))
