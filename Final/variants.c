@@ -69,52 +69,7 @@ int Fill_Matriz_fromFile() {
 // Descrição: Preenche os vetores de tendas por linha e por coluna;
 // Argumentos:
 // Retorno: 0 se ler bem, -1 se chegar ao fim do ficheiro.
-int Fill_Hints_fromFile(int *Ltents, int *Ctents) {
-    int i, j=0, b;
-    int nbytes, offset, res;
-    char *end_ptr, buffer[BUFFER_SIZE + 1];
 
-    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
-    b = -1;
-    j=0;
-    offset = 0;
-    buffer[BUFFER_SIZE] = '\n';
-    while(1) {
-        // Skip whitespaces and such;
-        for(b++; b - offset< nbytes; b++) {
-            if(buffer[b] >= '0' && buffer[b] <= '9')
-                break;
-        }
-
-        if(nbytes==b-offset) {
-            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
-            if(nbytes == 0)
-                return -1;
-            offset = 0;
-            b = -1;
-            continue;
-        }
-        res = strtol(buffer+b, &end_ptr, 10);
-        if(end_ptr == &buffer[BUFFER_SIZE]) {
-            offset = end_ptr - buffer - b;
-            for(i=0; i<offset; i++)
-                buffer[i] = buffer[b+i];
-            nbytes = fread(buffer + offset, 1, BUFFER_SIZE-offset, fp);
-            res = strtol(buffer, &end_ptr, 10);
-        }
-        b = end_ptr - buffer - 1;
-
-        if(j < L)
-            Ltents[j] = res;
-        else if(j - L <  C)
-            Ctents[j-L] = res;
-
-        if(++j == L + C) {
-            fseek(fp, 1 +b - offset -nbytes , SEEK_CUR);
-            return 0;
-        }
-    }
-}
 
 // Descrição: Determina se pode existir uma tenda nas coordenadas fornecidas, de acordo com os critérios de B,
 //            lendo diretamente do ficheiro.
