@@ -16,19 +16,19 @@ debug: CFLAGS = -Wall -std=c99 -g
 debug: campista
 
 valtest: 
-	rm -f tests/*.tents0
+	rm -f tests/*.tents
 	printf "Starting tests;\n"
 	find tests/ -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
 	printf "done;\n"
 test: 
-	rm -f tests/*.tents0
+	rm -f tests/*.tents
 	printf "Starting tests;\n"
 	find tests/ -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec ./$(TARGET) {} \;
 	printf "done;\n"
 
 check:
 	printf "Starting checks;\n"
-	find tests/ -maxdepth 1 -name "*.tents" -execdir echo Errors in {}: \; -execdir diff {} s/{} \; 
+	find tests/ -maxdepth 1 -name "*.tents" -execdir echo Errors in {}: \; -execdir diff {} s/{} \;
 	printf "done;\n"
 
 testmem:
@@ -51,3 +51,4 @@ testtime:
 
 clean:
 	rm -f *.o
+	rm -f tests/*.tents
