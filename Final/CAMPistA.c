@@ -55,7 +55,7 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     while(1) {
         if( fscanf(fp, " %d", &L) != 1) exit(0);
         if( fscanf(fp, " %d", &C) != 1) exit(0);;
-        Solver(fp, L, C);
+        Solver(fp, L, C, fp2);
 
         /* verificar se há mais problemas no ficheiro de entrada */
         if(!Ha_mais_problemas(fp))
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 
     /* verificar se o ficheiro de entrada tem extensão '.camp0' */
     p=strrchr(argv[1], '.');
-    if(p == NULL || strcmp(p, ".camp0")) exit(0);
+    if(p == NULL || strcmp(p, ".camp")) exit(0);
 
     /*Abertura do ficheiro de entrada*/
     fp=AbreFicheiro(argv[1], "rb");
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     if(ficheirosaida==NULL) exit(0);
     strcpy(ficheirosaida, argv[1]);
     p=strrchr(ficheirosaida, '.');
-    strcpy(p, ".tents0");
+    strcpy(p, ".tents");
 
     /*Abrir ficheiro de saída para escrever */
     fp2=AbreFicheiro(ficheirosaida, "w");

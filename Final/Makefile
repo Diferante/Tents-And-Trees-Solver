@@ -6,7 +6,7 @@ TARGET = campista
 export TARGET
 
 # objects (make automatically makes x.o from x.c)
-OBJECTS = CAMPistA.o variants.o generalStack.o
+OBJECTS = CAMPistA.o TentsSolver.o generalStack.o
 
 
 campista: $(OBJECTS)
@@ -15,15 +15,20 @@ campista: $(OBJECTS)
 debug: CFLAGS = -Wall -std=c99 -g
 debug: campista
 
+valtest: 
+	rm -f tests/*.tents0
+	printf "Starting tests;\n"
+	find tests/ -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
+	printf "done;\n"
 test: 
 	rm -f tests/*.tents0
 	printf "Starting tests;\n"
-	find tests/ -maxdepth 1 -name "*.camp0"  -exec echo {} \; -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
+	find tests/ -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec ./$(TARGET) {} \;
 	printf "done;\n"
 
 check:
 	printf "Starting checks;\n"
-	find tests/ -maxdepth 1 -name "*.tents0" -execdir echo Errors in {}: \; -execdir diff {} s/{} \; 
+	find tests/ -maxdepth 1 -name "*.tents" -execdir echo Errors in {}: \; -execdir diff {} s/{} \; 
 	printf "done;\n"
 
 testmem:

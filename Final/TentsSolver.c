@@ -1,13 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "generalStack.h"
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 1024*16
+
+#define DIR 2 // direita, esquerda, cima e baixo
+#define ESQ -2
+#define CIMA 1
+#define BAIXO -1
+
+char **Matriz;
+unsigned int L;
+unsigned int C;
+int *Ltents;
+int *Ctents;
+int tendas_rest;
+int arvores;
+
 typedef struct {
     int x, y;
 } Point;
 
-void _free_matriz(char **Matriz, unsigned int L) {
+void _free_matriz() {
     int i;
 
     if(Matriz == NULL) return;
@@ -18,155 +33,523 @@ void _free_matriz(char **Matriz, unsigned int L) {
     free(Matriz);
 }
 
-// Descrição: Lê os vetores iniciais e verifica se as somas são iguais.
-// Retorno: Número de tendas caso a soma seja igual, -2 se não for igual ou -1 se houver erro na leitura.
-int Read_Hints(FILE* fp, unsigned int L, unsigned int C, int *Ltents, int *Ctents) {
-    int i, j=0, b, nbytes, offset, res;
-    int somaL = 0, somaC = 0;
-    char *end_ptr, buffer[BUFFER_SIZE + 1];
-
-    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
-    b = -1;
-    j=0;
-    offset = 0;
-    buffer[BUFFER_SIZE] = '\n';
-    while(1) {
-        // Skip whitespaces and such;
-        for(b++; b - offset< nbytes; b++) {
-            if(buffer[b] >= '0' && buffer[b] <= '9')
-                break;
-        }
-
-        if(nbytes==b-offset) {
-            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
-            if(nbytes == 0)
-                return -1;
-            offset = 0;
-            b = -1;
-            continue;
-        }
-        res = strtol(buffer+b, &end_ptr, 10);
-        if(end_ptr == &buffer[BUFFER_SIZE]) {
-            offset = end_ptr - buffer - b;
-            for(i=0; i<offset; i++)
-                buffer[i] = buffer[b+i];
-            nbytes = fread(buffer + offset, 1, BUFFER_SIZE-offset, fp);
-            res = strtol(buffer, &end_ptr, 10);
-        }
-        b = end_ptr - buffer - 1;
-
-        if(j < L){
-            somaL += res;
-            Ltents[j] = res;
-        } else if(j-L < C) {
-            somaC += res;
-            Ctents[j-L] = res;
-        }
-        if(++j == L + C) {
-            fseek(fp, 1 +b - offset -nbytes , SEEK_CUR);
-            break;
-        }
-
+void handle_int(int res, int i, int *Ltents, int *Ctents, int *somaL, int *somaC) {
+    if(i < L) {
+        Ltents[i] = res;
+        *somaL += res;
+    } else if(i - L <  C) {
+        Ctents[i - L] = res;
+        *somaC += res;
     }
+}
+// Descrição: Lẽ as hints do ficheiro e soma os vetores.
+// Argumentos:
+// Retorno: -1 se ocorrer erro, se não devolve o número de tendas ou -2 caso os vetores sejam coerentes.
+int Fill_Hints_checkSums(FILE *fp) {
+    int i, n, res, somaL = 0, somaC = 0;
+    int block_to_read, nbytes, bytes_skiped, digits_read, bytes_consumed;
+    char *buffer, *pre_buffer, *end_ptr;
+
+    n = (2*L + 2*C)/BUFFER_SIZE;
+    block_to_read = BUFFER_SIZE;
+    if(n == 0) {
+        block_to_read = (2*L + 2*C);
+        n = 1;
+    }
+    // The block is 16 extra chars before a buffer of size block_to_read, eith an extra char in the end for '\0'.
+    pre_buffer = (char*) malloc(16 + block_to_read + 1);
+    if(pre_buffer == NULL) return -1;
+    buffer = pre_buffer + 16;
+    buffer[block_to_read] = '\0';
+
+    i = 0;
+    bytes_skiped = -1;
+    digits_read = 0;
+    while(1) {
+        for(; n>0; n--) {
+            nbytes = fread(buffer, 1, block_to_read, fp);
+            if(nbytes != block_to_read)
+                return -1;
+            bytes_consumed = 0;
+            // Check if not first time
+            if(digits_read != 0) {
+                // Read the number that was supposed to be read last time
+                res = strtol(buffer - digits_read, &end_ptr, 10);
+                bytes_consumed = end_ptr - buffer;
+                handle_int(res, i, Ltents, Ctents, &somaL, &somaC);
+                i++;
+            }
+            // Read buffer int by int
+            for(; i<L+C; i++) {
+                sscanf(buffer + bytes_consumed, " %n", &bytes_skiped);
+                bytes_consumed += bytes_skiped;
+                res = strtol(buffer+bytes_consumed, &end_ptr, 10);
+                if(end_ptr == &buffer[block_to_read]) {
+                    digits_read = end_ptr - buffer - bytes_consumed;
+                    // Write part of number into pre_buffer
+                    memcpy(buffer - digits_read, buffer + bytes_consumed, digits_read);
+                    break;
+                }
+                bytes_consumed = end_ptr - buffer;
+                handle_int(res, i, Ltents, Ctents, &somaL, &somaC);
+            }
+        }
+        // Se só restam 3 -> ler o resto diretamente
+        if(L + C -i < 4) break;
+        n = 2*(L + C - i)/BUFFER_SIZE;
+        block_to_read = BUFFER_SIZE;
+        if(n == 0) {
+            block_to_read = 2*(L + C - i);
+            n = 1;
+        }
+        buffer[block_to_read] = '\0';
+    }
+    if(i != L + C) {
+        if(digits_read != 0) {
+            // Read the number that was partially read last time
+            if( fscanf(fp, "%[0-9]", buffer) != 1) buffer[0] = '\0';
+            res = strtol(buffer - digits_read, &end_ptr, 10);
+            handle_int(res, i, Ltents, Ctents, &somaL, &somaC);
+            i++;
+        }
+        // Read remaining ints one by one
+        for(; i<L+C; i++) {
+            if( fscanf(fp, " %d", &res) != 1) return -1;
+            handle_int(res, i, Ltents, Ctents, &somaL, &somaC);
+        }
+    }
+    free(pre_buffer);
     if(somaL != somaC)
         return -2;
     return somaL;
 }
 
-
-// Descrição: Lê a matriz e determina se o problema é admissível.
+// Descrição: Lê a matriz do ficheiro e conta as árvores.
 // Argumentos:
-// Retorno: 0 caso seja detetada a inadmissibilidade do problema, 1 caso contrário.
-int Read_Matriz (FILE* fp, char **Matriz, unsigned int L, unsigned int C, int soma_tendas){
-    int i, j, b, nbytes;
-    int arvores = 0, res, offset;
-    char buffer[BUFFER_SIZE+1], *end_ptr;
+// Retorno: O número de árvores se ler bem, -1 se chegar ao fim do ficheiro ou erro de alocação.
+int Fill_Matriz_easy(FILE *fp) {
+    int i, j, arvores=0;
+    char format[32];
+    sprintf(format, " %%%dc", C);
 
-    Matriz[0] = (char*) malloc(C*sizeof(char));
-    if(Matriz[0] == NULL) return -1;
-
-    nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
-    b = -1;
-    i=0;
-    j=0;
-    while(1) {
-        // Skip whitespaces and such;
-        for(b++; b < nbytes; b++) {
-            if(buffer[b] == 'A' || buffer[b] == 'T' || buffer[b] == '.')
-                break;
-        }
-
-        if(nbytes==b) {
-            nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
-            if(nbytes == 0)
-                return -1;
-            b = -1;
-            continue;
-        }
-        Matriz[i][j] == buffer[b];
-        if(buffer[b]=='A') arvores++;
-        if(j == C - 1) {
-            j=0;
-            if(++i == L) {
-                fseek(fp, 1 +b -nbytes , SEEK_CUR);
-                break;
-            }
-            Matriz[i] = (char*) malloc(C*sizeof(char));
-            if(Matriz[i] == NULL) return -1;
-        } else {
-            j++;
+    for(i=0; i<L; i++) {
+        Matriz[i] = (char*) malloc(C*sizeof(char));
+        if(Matriz[i] == NULL) return -1;
+        if( fscanf(fp, format, Matriz[i]) != 1) return -1;
+        for(j=0; j<C; j++) {
+            if(Matriz[i][j] == 'A') arvores++;
         }
     }
+    return arvores;
+}
+
+int check_linha_coluna(int l0, int c0) {
+    int i, j, somaL=0, somaC=0;
+    for(i=l0, j=0; j < c0 - 1; j++) {
+        if(Matriz[i][j] == 'T')    somaL++;
+    }
+    for(j=c0+2; j < C; j++) {
+        if(Matriz[i][j] == 'T')    somaL++;
+    }
+    for(i=0, j=c0; i < l0 - 1; i++) {
+        if(Matriz[i][j] == 'T')    somaC++;
+    }
+    for(i=l0+2; i < L; i++) {
+        if(Matriz[i][j] == 'T')    somaC++;
+    }
+
+    if(somaC >= Ctents[c0] || somaL >= Ltents[l0]) return 0;
     return 1;
-
 }
 
-void Guesser(char **Matriz, unsigned int L, unsigned int C, Point* opens) {
+void move_dir(int* l_out, int* c_out, char dir) {
+    if(dir== CIMA) {
+        *l_out += -2;
+    } else if( dir == BAIXO) {
+        *l_out += 2;
+    } else if( dir == ESQ) {
+        *c_out += -2;
+    } else
+        *c_out += 2;
+}
+
+// Descrição: Determina se esta tenda possui árvores adjacentes disponíveis.
+// Argumentos: Linha e coluna da tenda.
+// Retorno: 0 caso a tenda tenha árvore disponível, 1 caso contrário.
+char isT_alone_iter(int l0, int c0) {
+    char from = 0;
+    Stack *charStack;
+    charStack = initStack(8, 1);
+    while(1) {
+        Matriz[l0][c0] = 't';
+        // Ver a direita
+        if(c0!=C-1) {
+            if(Matriz[l0][c0+1] == 'A') {
+                Matriz[l0][c0+1] = 'a';
+                if(c0==C-2) {
+                    freeStack(charStack);
+                    return 0;
+                }
+                if(Matriz[l0][c0+2] != 'T') {
+                    freeStack(charStack);
+                    return 0;
+                }
+                push(charStack, &from);
+                from = ESQ;
+                move_dir(&l0, &c0, DIR);
+                continue;
+            }
+        }
+        // Ver a baixo
+        if(l0!=L-1) {
+            if(Matriz[l0+1][c0] == 'A') {
+                Matriz[l0+1][c0] = 'a';
+                if(l0==L-2) {
+                    freeStack(charStack);
+                    return 0;
+                }
+                if(Matriz[l0+2][c0] != 'T')  {
+                    freeStack(charStack);
+                    return 0;
+                }
+                push(charStack, &from);
+                from = CIMA;
+                move_dir(&l0, &c0, BAIXO);
+                continue;
+            }
+        }
+        // Ver a esquerda
+        if(c0!=0) {
+            if(Matriz[l0][c0-1] == 'A') {
+                Matriz[l0][c0-1] = 'a';
+                if(c0==1) {
+                    freeStack(charStack);
+                    return 0;
+                }
+                if(Matriz[l0][c0-2] != 'T') {
+                    freeStack(charStack);
+                    return 0;
+                }
+                push(charStack, &from);
+                from = DIR;
+                move_dir(&l0, &c0, ESQ);
+                continue;
+            }
+        }
+        // Ver a cima
+        if(l0!=0) {
+            if(Matriz[l0-1][c0] == 'A') {
+                Matriz[l0-1][c0] = 'a';
+                if(l0==1) {
+                    freeStack(charStack);
+                    return 0;
+                }
+                if(Matriz[l0-2][c0] != 'T') {
+                    freeStack(charStack);
+                    return 0;
+                }
+
+                push(charStack, &from);
+                from = BAIXO;
+                move_dir(&l0, &c0, CIMA);
+                continue;
+            }
+        }
+        if(from == 0) {
+            freeStack(charStack);
+            return 1;
+        }
+        move_dir(&l0, &c0, from);
+        pop(charStack, &from);
+    }
+}
+
+
+
+/* atualiza os Opens around (x, y)*/
+void add_around(int x, int y, int value) {
+    int j=0;
+    char c;
+    if(y+1 < C) {
+        c = Matriz[x][y+1];
+        if(c>='0' && c<='8') Matriz[x][y+1] += value;
+    }
+    if(x+1 < L) {
+        for(j=-1; j<2; j++) {
+            if(y+j>=0 && y+j<C) {
+                c = Matriz[x+1][y+j];
+                if(c>='0' && c<='8') Matriz[x+1][y+j] += value;
+            }
+        }
+    }
+    return;
+}
+
+void printMatriz() {
     int i;
-    initStack(L+C, sizeof(Point));
-
-
+    for(i=0; i<L; i++) {
+        printf("%s\n", Matriz[i]);
+    }
+    printf("\n");
 }
 
-int Solver(FILE *fpointer, unsigned int L, unsigned int C, FILE *fp) {
-    int res;
-    char **Matriz;
-    int *Ltents, *Ctents;
-    Point *opens;
+int Guesser() {
+    Point p;
+    Stack *jogadas;
+
+    jogadas = initStack(8, sizeof(Point));
+    p.x=0;
+    p.y=0;
+    while(1) {
+        //printMatriz();
+        for(; p.x<L; p.x++) {
+            for(; p.y<C; p.y++) {
+                if(Matriz[p.x][p.y] == '0' && check_linha_coluna(p.x, p.y)) {
+                    Matriz[p.x][p.y] = 'T';
+                    add_around(p.x, p.y, 1);
+                    push(jogadas, &p);
+                    tendas_rest--;
+                    break;
+                }
+            }
+            if(p.y != C) break;
+            p.y = 0;
+        }
+        if(p.x == L) {
+            if(isEmpty(jogadas)) {
+                freeStack(jogadas);
+                return -1; // Impossible
+            }
+            pop(jogadas, &p);
+            Matriz[p.x][p.y] = '0';
+            add_around(p.x, p.y, -1);
+            tendas_rest++;
+            p.y++;
+            continue;
+        }
+        if(tendas_rest == 0) {
+            for(p.x=0; p.x<L; p.x++) {
+                for(p.y=0; p.y<C; p.y++) {
+                    if(Matriz[p.x][p.y] == 'T' && isT_alone_iter(p.x, p.y)) break;
+                }
+                if(p.y != C) break;
+            }
+            if(p.x == L) {
+                freeStack(jogadas);
+                for(p.x=0; p.x<L; p.x++) {
+                    for(p.y=0; p.y<C; p.y++) {
+                        if(Matriz[p.x][p.y] == 't' ) Matriz[p.x][p.y] = 'T';
+                        else if(Matriz[p.x][p.y] == 'a' ) Matriz[p.x][p.y] = 'A';
+                        else if(Matriz[p.x][p.y] != 'T' &&  Matriz[p.x][p.y] != 'A') Matriz[p.x][p.y] = '.';
+                    }
+                }
+                return 1; // Win
+            }
+            for(p.x=0; p.x<L; p.x++) {
+                for(p.y=0; p.y<C; p.y++) {
+                    if(Matriz[p.x][p.y] == 't' ) Matriz[p.x][p.y] = 'T';
+                    else if(Matriz[p.x][p.y] == 'a' ) Matriz[p.x][p.y] = 'A';
+                }
+            }
+        }
+    }
+
+}
+int teste_arvore(int x, int y) {
+    /* vê arvores nas quatro direcoes */
+    int arvore=0;
+
+    if(x>0) {
+        if(Matriz[x-1][y]=='A')arvore++;
+    }
+    if(x<L-1) {
+        if(Matriz[x+1][y]=='A')arvore++;
+    }
+
+    if(y>0) {
+        if(Matriz[x][y-1]=='A')arvore++;
+    }
+    if(y<C-1) {
+        if(Matriz[x][y+1]=='A')arvore++;
+    }
+    return arvore;
+}
+int teste_tendas(int x, int y) {
+    /* vê tendas nas adjacentes */
+    int i=0;
+    int j=0;
+    int tendas_rest=0;
+    int k[3]= {-1,0, 1};
+
+    for(i=0; i<3; i++) {
+        for(j=0; j<3; j++) {
+            if(x+k[i]>=0 && x+k[i]<L && y+k[j]>=0 && y+k[j]<C) {
+                if(Matriz[x+k[i]][y+k[j]]=='T')
+                    tendas_rest++;
+            }
+        }
+    }
+    if(tendas_rest!=0) return 0;
+    else return 1;
+}
+
+/* mete os Opens em '.'*/
+void teste_tendas_2(int x, int y) {
+
+    int i=0;
+    int j=0;
+    int k[3]= {-1,0, 1};
+
+    for(i=0; i<3; i++) {
+        for(j=0; j<3; j++) {
+            if(x+k[i]>=0 && x+k[i]<L && y+k[j]>=0 && y+k[j]<C) {
+                if(Matriz[x+k[i]][y+k[j]]=='0') Matriz[x+k[i]][y+k[j]]='.';
+            }
+        }
+    }
+    return;
+}
+/*Testa se alguma arvore esta isolada com so um Open, substitui o O por T e mete os adjacentes que são Open a . */
+void teste_arvore_opens(int x, int y ) {
+    int opens=0;
+    int flag=0;
+
+    if(x>0) {
+        /*cima*/
+        if(Matriz[x-1][y]=='0') {
+            opens++;
+            flag=1;
+        }
+    }
+    /*baixo*/
+    if(x<L-1) {
+        if(Matriz[x+1][y]=='0') {
+            opens++;
+            flag=2;
+        }
+    }
+    /* esquerda */
+    if(y>0) {
+        if(Matriz[x][y-1]=='0') {
+            opens++;
+            flag=3;
+        }
+    }
+    /* direita */
+    if(y<C-1) {
+        if(Matriz[x][y+1]=='0') {
+            opens++;
+            flag=4;
+        }
+    }
+    /* se alguma arvore so tiver um open, meter tenda ai e meter os adjacentes a '.' */
+    if(opens==1) {
+        if(flag==1) {
+            Matriz[x-1][y]='T';
+            tendas_rest--;
+            teste_tendas_2(x-1, y);
+            return;
+        }
+        if(flag==2) {
+            Matriz[x+1][y]='T';
+            tendas_rest--;
+            teste_tendas_2(x+1, y);
+            return;
+        }
+        if(flag==3) {
+            Matriz[x][y-1]='T';
+            tendas_rest--;
+            teste_tendas_2(x, y-1);
+            return;
+        }
+        if(flag==4) {
+            Matriz[x][y+1]='T';
+            tendas_rest--;
+            teste_tendas_2(x, y+1);
+            return;
+        }
+    }
+    return;
+}
+
+void teste() {
+    int i, j;
+    //Point new_open, *opens_stack;
+
+    //opens_stack = (Point *) initStack(8 sizeof(Point));
+    /* Verifica as posições que são '.' */
+    for(i=0; i<L; i++) {
+        if (Ltents[i]==0 ) continue;
+        for(j=0; j<C; j++) {
+            if (Ctents[j]==0) continue;
+            if(Matriz[i][j]=='.') {
+                /* só é Open se tiver pelo menos uma árvore e nenhuma tenda na sua adjacencia */
+                if(teste_arvore(i, j) && teste_tendas(i, j)) {
+                    Matriz[i][j]='0';
+                    /*new_open.x = i;
+                    new_open.y = j;
+                    push((void*)opens_stack, &new_open);*/
+                }
+            }
+        }
+    }
+    /* Verifica se alguma árvore tem só 1 Open */
+    for(i=0; i<L; i++) {
+        for(j=0; j<C; j++) {
+            if(Matriz[i][j]=='A') teste_arvore_opens(i,j);
+        }
+    }
+    return ;
+}
+
+int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
+    int i, j, res;
+    //Point *open_stack;
+
+    L = l;
+    C = c;
 
     Ltents = (int*) malloc(L*sizeof(int));
     if(Ltents == NULL) exit(0);
     Ctents = (int*) malloc(C*sizeof(int));
     if(Ctents == NULL) {
-        free(Ltents);
+        free(Ltents);            // Read Linhas, Colunas
         exit(0);
     }
-    // Read Linhas, Colunas
-    res = Fill_Hints_fromFile(fp, L, C, Ltents, Ctents);
-    if(res != 0){
-        free(Ltents);
-        free(Ctents);
-        return res;
-    }
+
+    tendas_rest = Fill_Hints_checkSums(fpointer);
+
+    if(tendas_rest<0) return -1;
+
 
     Matriz = (char**) calloc(L, sizeof(char*));
     if(Matriz == NULL) return -1;
 
-    /*Read matriz and check Admissibilidade*/
-    res = SolveAfromFile(fp, Matriz, L, C, Ltents, Ctents);
-    if(res != 0) {
+    arvores = Fill_Matriz_easy(fpointer);
+
+    if(tendas_rest > arvores) {
         free(Ltents);
         free(Ctents);
-        _free_matriz(Matriz, L);
-        return res;
+        _free_matriz();
+        return -1;
     }
+
     /*cria opens na matriz e verifica opens obvios */
-    Matriz=teste();
-    while(1){
-        //Check 100% certain open changes to '.' or to 'T'
-        if(res == 'W') // if managed to win
-            break;
-        Guesser(opens);
+    teste();
+
+    res = Guesser();
+
+    fprintf(fp2, "%d %d %d\n" , L, C, res);
+    if(res != -1) {
+        for(i=0; i<L; i++) {
+            for(j=0; j<C; j++) {
+                fprintf(fp2, "%c", Matriz[i][j]);
+            }
+            fprintf(fp2, "\n");
+        }
     }
-    return res;
+
+    fprintf(fp2, "\n");
+
+    return 0;
 }

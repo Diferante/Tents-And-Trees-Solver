@@ -35,6 +35,10 @@ Stack* initStack(unsigned int initial_size, unsigned int item_size) {
     return newSt;
 };
 
+int isEmpty(Stack* stack){
+    return stack->i == 0 && stack->head->next == NULL;
+    }
+
 void freeStack(Stack* stack) {
     struct node* old;
 
