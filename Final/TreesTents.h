@@ -1,17 +1,6 @@
 #ifndef TREESTENTS_H_INCLUDED
 #define TREESTENTS_H_INCLUDED
 
-typedef struct {
-  char **Matriz;
-  unsigned int L;
-  unsigned int C;
-  int *Ltents;
-  int *Ctents;
-  int tendas_rest;
-  int arvores;
-  char estacao_alta;
-} Jogo;
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -99,13 +88,13 @@ void teste_opens(int x, int y, int type, char **Matriz, int L, int C) ;
  * alterar Opens adjacentes para '.'.
  * Retorno: 1 se era isolada com 1 Open/'T', 0 se não.
  * */
-int arvore_facil(int x, int y, Jogo *jogo); 
+int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Ltents, int *Ctents, int *tendas_rest); 
 
 /* Descrição: Transforma opens da linha em tendas e chama pontos_around para
  *remover os opens adjacentes 
  * Argumentos: linha x
  * */
-void Linha_fill(int x, Jogo *jogo) ;
+//void Linha_fill(int x, Jogo *jogo) ;
 
 
 #endif // TREESTENTS_H_INCLUDED

@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "generalStack.h"
 #include "TreesTents.h"
+#include "generalStack.h"
 
 #define BUFFER_SIZE 1024 * 16
 
@@ -34,7 +34,8 @@ void _free_matriz(char **Matriz, int L) {
   free(Matriz);
 }
 
-void handle_int(int res, int i, int *somaL, int *somaC, int *Ltents, int *Ctents, int L, int C) {
+void handle_int(int res, int i, int *somaL, int *somaC, int *Ltents,
+                int *Ctents, int L, int C) {
   if (i < L) {
     Ltents[i] = res;
     *somaL += res;
@@ -154,22 +155,23 @@ int Fill_Matriz_easy(FILE *fp, char **Matriz, int L, int C) {
   return arvores;
 }
 
-int check_linha_coluna(int l0, int c0, char **Matriz, int L, int C, int Ltents_l0, int Ctents_c0) {
+int check_linha_coluna(int l0, int c0, char **Matriz, int L, int C,
+                       int Ltents_l0, int Ctents_c0) {
   int i, j, somaL = 0, somaC = 0;
   for (i = l0, j = 0; j < c0 - 1; j++) {
-    if (Matriz[i][j] == 'T')
+    if (Matriz[i][j] == 'T' || Matriz[i][j] == 't')
       somaL++;
   }
   for (j = c0 + 2; j < C; j++) {
-    if (Matriz[i][j] == 'T')
+    if (Matriz[i][j] == 'T' || Matriz[i][j] == 't')
       somaL++;
   }
   for (i = 0, j = c0; i < l0 - 1; i++) {
-    if (Matriz[i][j] == 'T')
+    if (Matriz[i][j] == 'T' || Matriz[i][j] == 't')
       somaC++;
   }
   for (i = l0 + 2; i < L; i++) {
-    if (Matriz[i][j] == 'T')
+    if (Matriz[i][j] == 'T' || Matriz[i][j] == 't')
       somaC++;
   }
 
@@ -332,7 +334,6 @@ void printMatriz(char **Matriz, int L, int C) {
   printf("\n");
 }
 
-
 /* Descrição: Verifica o número de árvores nas quatro direções
  * Argumentos: Posição (x,y) do mapa a ser verificado
  * Retorno: retorna o número de árvores diretamente adjacentes
@@ -376,6 +377,19 @@ int sem_tendas_adj(int x, int y, char **Matriz, int L, int C) {
     }
   }
   return 1;
+}
+/* Descrição: Devolve o número de opens após (x, y) */
+int opens_ahead(int x, int y, char **Matriz, int L, int C) {
+  int i, j = y, opens = 0;
+
+  for (i = x; i < L; i++) {
+    for (; j < C; j++) {
+      if (Matriz[i][j] == '0')
+        opens++;
+    }
+    j = 0;
+  }
+  return opens;
 }
 
 /* Descrição: Substitui todos os opens num quadrado 3x3 por '.' */
@@ -440,38 +454,38 @@ void pontos_around(int x, int y, char **Matriz, int L, int C) {
     return;
   }*/
 
-  /* se alguma arvore só tiver um open, meter tenda ai e meter os adjacentes a
-   * '.' */
-  /* decrementa o número de tendas necessárias para a determinada linha/coluna*/
-  /*if (opens == 1 && type == 1) {
-    Matriz[x][y] = 'a';
+/* se alguma arvore só tiver um open, meter tenda ai e meter os adjacentes a
+ * '.' */
+/* decrementa o número de tendas necessárias para a determinada linha/coluna*/
+/*if (opens == 1 && type == 1) {
+  Matriz[x][y] = 'a';
 
-    if (flag == 1) {
-      Matriz[x - 1][y] = 't';
-      tendas_rest--;
-      teste_tendas_2(x - 1, y);
-      return;
-    }
-    if (flag == 2) {
-      Matriz[x + 1][y] = 't';
-      tendas_rest--;
-      teste_tendas_2(x + 1, y);
-      return;
-    }
-    if (flag == 3) {
-      Matriz[x][y - 1] = 't';
-      tendas_rest--;
-      teste_tendas_2(x, y - 1);
-      return;
-    }
-    if (flag == 4) {
-      Matriz[x][y + 1] = 't';
-      tendas_rest--;
-      teste_tendas_2(x, y + 1);
-      return;
-    }
+  if (flag == 1) {
+    Matriz[x - 1][y] = 't';
+    tendas_rest--;
+    teste_tendas_2(x - 1, y);
+    return;
   }
-  return;
+  if (flag == 2) {
+    Matriz[x + 1][y] = 't';
+    tendas_rest--;
+    teste_tendas_2(x + 1, y);
+    return;
+  }
+  if (flag == 3) {
+    Matriz[x][y - 1] = 't';
+    tendas_rest--;
+    teste_tendas_2(x, y - 1);
+    return;
+  }
+  if (flag == 4) {
+    Matriz[x][y + 1] = 't';
+    tendas_rest--;
+    teste_tendas_2(x, y + 1);
+    return;
+  }
+}
+return;
 }*/
 
 /* Descrição: Testa se a Posição (x, y) está isolada com só 1 Open ou 'T' e
@@ -479,17 +493,17 @@ void pontos_around(int x, int y, char **Matriz, int L, int C) {
  * alterar Opens adjacentes para '.'.
  * Retorno: 1 se era isolada com 1 Open/'T', 0 se não.
  * */
-int arvore_facil(int x, int y, Jogo *jogo) {
+int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Ltents,
+                 int *Ctents, int *tendas_rest) {
   int tendas_e_opens = 0; // Número de opens '0' e tendas sem par 'T'
   int flag = 0;
-  char ** Matriz = jogo->Matriz;
   if (x > 0) {
     if (Matriz[x - 1][y] == '0' || Matriz[x - 1][y] == 'T') {
       tendas_e_opens++;
       flag = 1;
     }
   }
-  if (x < jogo->L - 1) {
+  if (x < L - 1) {
     if (Matriz[x + 1][y] == '0' || Matriz[x + 1][y] == 'T') {
       tendas_e_opens++;
       flag = 2;
@@ -501,7 +515,7 @@ int arvore_facil(int x, int y, Jogo *jogo) {
       flag = 3;
     }
   }
-  if (y < jogo->C - 1) {
+  if (y < C - 1) {
     if (Matriz[x][y + 1] == '0' || Matriz[x][y + 1] == 'T') {
       tendas_e_opens++;
       flag = 4;
@@ -517,44 +531,44 @@ int arvore_facil(int x, int y, Jogo *jogo) {
 
   if (flag == 1) {
     Matriz[x - 1][y] = 't';
-    jogo->tendas_rest--;
-    jogo->Ltents[x - 1]--;
-    jogo->Ctents[y]--;
-    pontos_around(x - 1, y, Matriz, jogo->L, jogo->C);
+    (*tendas_rest)--;
+    Ltents[x - 1]--;
+    Ctents[y]--;
+    pontos_around(x - 1, y, Matriz, L, C);
     return 1;
   }
   if (flag == 2) {
     Matriz[x + 1][y] = 't';
-    jogo->tendas_rest--;
-    jogo->Ltents[x + 1]--;
-    jogo->Ctents[y]--;
-    pontos_around(x + 1, y, Matriz, jogo->L, jogo->C);
+    (*tendas_rest)--;
+    Ltents[x + 1]--;
+    Ctents[y]--;
+    pontos_around(x + 1, y, Matriz, L, C);
     return 1;
   }
   if (flag == 3) {
     Matriz[x][y - 1] = 't';
-    jogo->tendas_rest--;
-    jogo->Ltents[x]--;
-    jogo->Ctents[y - 1]--;
-    pontos_around(x, y - 1, Matriz, jogo->L, jogo->C);
+    (*tendas_rest)--;
+    Ltents[x]--;
+    Ctents[y - 1]--;
+    pontos_around(x, y - 1, Matriz, L, C);
     return 1;
   }
   if (flag == 4) {
     Matriz[x][y + 1] = 't';
-    jogo->tendas_rest--;
-    jogo->Ltents[x]--;
-    jogo->Ctents[y + 1]--;
-    pontos_around(x, y + 1, Matriz, jogo->L, jogo->C);
+    (*tendas_rest)--;
+    Ltents[x]--;
+    Ctents[y + 1]--;
+    pontos_around(x, y + 1, Matriz, L, C);
     return 1;
   }
   return 0; // Caso flag seja ainda 0, árvore não tinha open nem 'T' adjacente.
 }
 
 /* Descrição: Transforma opens da linha em tendas e chama pontos_around para
- *remover os opens adjacentes 
+ *remover os opens adjacentes
  * Argumentos: linha x
  * */
-void Linha_fill(int x, Jogo *jogo) {
+/*void Linha_fill(int x, Jogo *jogo) {
   int j;
   for (j = 0; j < jogo->C; j++) {
     if (jogo->Matriz[x][j] == '0') {
@@ -566,4 +580,4 @@ void Linha_fill(int x, Jogo *jogo) {
   }
 
   return;
-}
+}*/
