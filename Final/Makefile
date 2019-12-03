@@ -17,19 +17,19 @@ debug: campista
 
 valtest: 
 	rm -f tests/*.tents
-	printf "Starting tests;\n"
+	@printf "Starting tests;\n"
 	find tests/ -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
-	printf "done;\n"
+	@printf "done;\n"
 test: 
 	rm -f tests/*.tents
-	printf "Starting tests;\n"
-	find tests/ -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec ./$(TARGET) {} \;
-	printf "done;\n"
+	@printf "Starting tests;\n"
+	find tests/ -maxdepth 1 -name "enunciado*.camp"  -exec echo {} \; -exec ./$(TARGET) {} \;
+	@printf "done;\n"
 
 check:
-	printf "Starting checks;\n"
+	@printf "Starting checks;\n"
 	find tests/ -maxdepth 1 -name "*.tents" -execdir echo Errors in {}: \; -execdir diff {} s/{} \;
-	printf "done;\n"
+	@printf "done;\n"
 
 testmem:
 	reset
@@ -38,10 +38,10 @@ testmem:
 	ms_print --threshold=10.0 massifreport
 
 testa:
-	printf "Starting time check;\n"
+	@printf "Starting time check;\n"
 	time for n in {1..10}; do ./$(TARGET) teste_017.camp0; done
 	diff teste_017.tents0 teste_017.sol
-	printf "done;\n"
+	@printf "done;\n"
 
 testtime:
 	printf "Starting time check;\n"
