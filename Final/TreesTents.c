@@ -155,7 +155,7 @@ int Fill_Matriz_easy(FILE *fp, char **Matriz, int L, int C) {
   return arvores;
 }
 
-int check_linha_coluna(int l0, int c0, char **Matriz, int L, int C,
+/*int check_linha_coluna(int l0, int c0, char **Matriz, int L, int C,
                        int Ltents_l0, int Ctents_c0) {
   int i, j, somaL = 0, somaC = 0;
   for (i = l0, j = 0; j < c0 - 1; j++) {
@@ -178,7 +178,7 @@ int check_linha_coluna(int l0, int c0, char **Matriz, int L, int C,
   if (somaC >= Ctents_c0 || somaL >= Ltents_l0)
     return 0;
   return 1;
-}
+}*/
 
 void move_dir(int *l_out, int *c_out, char dir) {
   if (dir == CIMA) {
@@ -286,18 +286,26 @@ void repair_matriz(char **Matriz, int L, int C) {
   int i, j;
   for (i = 0; i < L; i++) {
     for (j = 0; j < C; j++) {
-      if (Matriz[i][j] == TMP_T || Matriz[i][j] == 't')
+      if (Matriz[i][j] == TMP_T)
         Matriz[i][j] = 'T';
-      else if (Matriz[i][j] == TMP_A || Matriz[i][j] == 'a')
+      else if (Matriz[i][j] == TMP_A)
         Matriz[i][j] = 'A';
     }
   }
 }
-void remove_opens(char **Matriz, int L, int C) {
+
+/* Descrição: Prepara matriz para escrita,
+ * troca os char's de processamento para os seus valores finais.
+ * */
+void beautify_matriz(char **Matriz, int L, int C) {
   int i, j;
   for (i = 0; i < L; i++) {
     for (j = 0; j < C; j++) {
-      if (Matriz[i][j] != 'T' && Matriz[i][j] != 'A')
+      if (Matriz[i][j] == 't')
+        Matriz[i][j] = 'T';
+      else if (Matriz[i][j] == 'a')
+        Matriz[i][j] = 'A';
+      else if (Matriz[i][j] != 'T' && Matriz[i][j] != 'A')
         Matriz[i][j] = '.';
     }
   }
@@ -377,19 +385,6 @@ int sem_tendas_adj(int x, int y, char **Matriz, int L, int C) {
     }
   }
   return 1;
-}
-/* Descrição: Devolve o número de opens após (x, y) */
-int opens_ahead(int x, int y, char **Matriz, int L, int C) {
-  int i, j = y, opens = 0;
-
-  for (i = x; i < L; i++) {
-    for (; j < C; j++) {
-      if (Matriz[i][j] == '0')
-        opens++;
-    }
-    j = 0;
-  }
-  return opens;
 }
 
 /* Descrição: Substitui todos os opens num quadrado 3x3 por '.' */

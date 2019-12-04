@@ -38,8 +38,6 @@ int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Ltents, int *Ctents) ;
 // erro de alocação.
 int Fill_Matriz_easy(FILE *fp, char **Matriz, int L, int C) ;
 
-int check_linha_coluna(int l0, int c0, char **Matriz, int L, int C, int Ltents_l0, int Ctents_c0) ;
-
 void move_dir(int *l_out, int *c_out, char dir) ;
 
 // Descrição: Determina se esta tenda possui árvores adjacentes disponíveis.
@@ -48,7 +46,7 @@ void move_dir(int *l_out, int *c_out, char dir) ;
 char isT_alone_iter(int l0, int c0, char **Matriz, int L, int C) ;
 
 void repair_matriz(char **Matriz, int L, int C) ;
-void remove_opens(char **Matriz, int L, int C) ;
+void beautify_matriz(char **Matriz, int L, int C) ;
 
 /* atualiza os Opens around (x, y)*/
 void add_around(int x, int y, int value, char **Matriz, int L, int C) ;

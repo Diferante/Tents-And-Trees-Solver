@@ -18,6 +18,76 @@ typedef struct {
   int x, y;
 } Point;
 
+void AnalyseTent(Stack *points_toAnalyse, Point tent, int isPaired) {
+  Point p, a;
+  int arvores_sem_par = 0;
+  // Verificar quadrado 3x3
+  for (p.x = tent.x - 1; p.x <= tent.x + 1; p.x++) {
+    for (p.y = tent.y - 1; p.y <= tent.y + 1; p.y++) {
+      if (p.x >= 0 && p.x < L && p.y >= 0 && p.y < C) {
+        if (Matriz[p.x][p.y] == '0') {
+          Matriz[p.x][p.y] = '.';
+          push(points_toAnalyse, &p);
+        } else if (p.x == tent.x ||
+                   p.y == tent.y) { // Se é adjacente não diagonal
+          if (Matriz[p.x][p.y] == 'A') {
+            arvores_sem_par++;
+            a = p;
+            if (isPaired)
+              push(points_toAnalyse, &p);
+          }
+        }
+      }
+    }
+  }
+  // Se só há uma árvore sem par adj esta tem de ser a par
+  if (!isPaired && arvores_sem_par == 1) {
+    Matriz[a.x][a.y] = 'a';
+    Matriz[tent.x][tent.y] = 't';
+    push(points_toAnalyse, &a);
+  }
+  // Verificar limites linha e coluna
+  p = tent;
+  if (--Ltents[tent.x] == 0) {
+    // Apagar opens da linha
+    for (p.y = 0; p.y < C; p.y++) {
+      if (Matriz[p.x][p.y] == '0') {
+        Matriz[p.x][p.y] = '.';
+        push(points_toAnalyse, &p);
+      }
+    }
+  }
+  p = tent;
+  if (--Ctents[tent.y] == 0) {
+    // Apagar opens da coluna
+    for (p.x = 0; p.x < L; p.x++) {
+      if (Matriz[p.x][p.y] == '0') {
+        Matriz[p.x][p.y] = '.';
+        push(points_toAnalyse, &p);
+      }
+    }
+  }
+}
+
+void ChangePropagator(int x, int y) {
+  Point p;
+  Stack *points_toAnalyse;
+  char c;
+  points_toAnalyse = initStack(8, sizeof(Point));
+  p.x = x;
+  p.y = y;
+  push(points_toAnalyse, &p);
+  while (!isEmpty(points_toAnalyse)) {
+    pop(points_toAnalyse, &p);
+    c = Matriz[p.x][p.y];
+    if (c == 'T' || c == 't') {
+      AnalyseTent(points_toAnalyse, p, c == 't');
+    } else if (c == 'A') {
+      // Analisar arvore
+    }
+  }
+}
+
 int Guesser() {
   Point p;
   Stack *jogadas;
@@ -26,7 +96,7 @@ int Guesser() {
   p.x = 0;
   p.y = 0;
   while (1) {
-    //printMatriz(Matriz, L, C);
+    // printMatriz(Matriz, L, C);
 
     for (; p.x < L; p.x++) {
       for (; p.y < C; p.y++) {
@@ -55,8 +125,8 @@ int Guesser() {
       Matriz[p.x][p.y] = '0';
       add_around(p.x, p.y, -1, Matriz, L, C);
       tendas_rest++;
-            Ltents[p.x]++;
-            Ctents[p.y]++;
+      Ltents[p.x]++;
+      Ctents[p.y]++;
       p.y++;
       continue;
     }
@@ -72,7 +142,7 @@ int Guesser() {
       repair_matriz(Matriz, L, C);
       if (p.x == L) {
         freeStack(jogadas);
-        remove_opens(Matriz, L, C);
+        beautify_matriz(Matriz, L, C);
         return 1; // Win;
       }
     }
@@ -81,8 +151,10 @@ int Guesser() {
 
 /* Descrição: Filtra o mapa inicial de modo a facilitar a resolução do
  * problema
+ * Retorno: 1 caso o problema esteja resolvido, -1 caso detetada a sua
+ * impossíbilidade, 0 caso contrário.
  * */
-void teste() {
+int teste() {
   int i, j;
   // int opens = 0;
   // Point new_open, *opens_stack;
@@ -133,7 +205,7 @@ void teste() {
     if (opens == Ltents[i])
      opens_em_tendas(i, 0);
   }*/
-  return;
+  return tendas_rest == 0;
 }
 
 int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
@@ -176,7 +248,20 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
   estacao_alta = tendas_rest == arvores;
 
   /*cria opens na matriz e verifica opens obvios */
-  teste();
+  res = teste();
+
+  if (res != 0) {
+    beautify_matriz(Matriz, L, C);
+    fprintf(fp2, "%d %d %d\n", L, C, res);
+    for (i = 0; i < L; i++) {
+      for (j = 0; j < C; j++) {
+        fprintf(fp2, "%c", Matriz[i][j]);
+      }
+      fprintf(fp2, "\n");
+    }
+    fprintf(fp2, "\n");
+    return 0;
+  }
 
   res = Guesser();
 

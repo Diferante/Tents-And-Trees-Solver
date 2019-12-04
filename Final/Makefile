@@ -23,7 +23,7 @@ valtest:
 test: 
 	rm -f tests/*.tents
 	@printf "Starting tests;\n"
-	find tests/ -maxdepth 1 -name "enunciado*.camp"  -exec echo {} \; -exec ./$(TARGET) {} \;
+	find tests/ -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec ./$(TARGET) {} \;
 	@printf "done;\n"
 
 check:
