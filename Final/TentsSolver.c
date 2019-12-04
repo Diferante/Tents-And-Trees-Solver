@@ -13,12 +13,13 @@ int *Ctents;
 int tendas_rest;
 int arvores;
 char estacao_alta;
+Stack *points_toAnalyse;
 
 typedef struct {
   int x, y;
 } Point;
-
-void AnalyseTent(Stack *points_toAnalyse, Point tent, int isPaired) {
+// Não necessáriamente uma tenda nova
+void AnalyseTent(Point tent, int isPaired) {
   Point p, a;
   int arvores_sem_par = 0;
   // Verificar quadrado 3x3
@@ -33,8 +34,8 @@ void AnalyseTent(Stack *points_toAnalyse, Point tent, int isPaired) {
           if (Matriz[p.x][p.y] == 'A') {
             arvores_sem_par++;
             a = p;
-            if (isPaired)
-              push(points_toAnalyse, &p);
+            if (isPaired && estacao_alta)
+              push(points_toAnalyse, &a);
           }
         }
       }
@@ -44,12 +45,24 @@ void AnalyseTent(Stack *points_toAnalyse, Point tent, int isPaired) {
   if (!isPaired && arvores_sem_par == 1) {
     Matriz[a.x][a.y] = 'a';
     Matriz[tent.x][tent.y] = 't';
-    push(points_toAnalyse, &a);
+    // é mais fácil tratar já da 'a' enquanto se sabe a direção do
+    // potencial open
+    // push(points_toAnalyse, &a);
+    // Se houver open ou tenda estará na direção de
+    // 't' para 'a' a duas células de distância
+    p.x = tent.x + 2 * (a.x - tent.x);
+    p.y = tent.y + 2 * (a.y - tent.y);
+    if (p.x >= 0 && p.x < L && p.y >= 0 && p.y < C) {
+      if (Matriz[p.x][p.y] == '0' || Matriz[p.x][p.y] == 'T') {
+        push(points_toAnalyse, &p);
+      }
+    }
   }
   // Verificar limites linha e coluna
   p = tent;
-  if (--Ltents[tent.x] == 0) {
-    // Apagar opens da linha
+  if (Ltents[tent.x] == 0) {
+    Ltents[tent.x] = -1; // Para não repetir a limpeza
+    // Limpa opens da linha
     for (p.y = 0; p.y < C; p.y++) {
       if (Matriz[p.x][p.y] == '0') {
         Matriz[p.x][p.y] = '.';
@@ -58,8 +71,9 @@ void AnalyseTent(Stack *points_toAnalyse, Point tent, int isPaired) {
     }
   }
   p = tent;
-  if (--Ctents[tent.y] == 0) {
-    // Apagar opens da coluna
+  if (Ctents[tent.y] == 0) {
+    Ctents[tent.y] = -1; // Para não repetir a limpeza
+    // Limpa opens da coluna
     for (p.x = 0; p.x < L; p.x++) {
       if (Matriz[p.x][p.y] == '0') {
         Matriz[p.x][p.y] = '.';
@@ -68,12 +82,223 @@ void AnalyseTent(Stack *points_toAnalyse, Point tent, int isPaired) {
     }
   }
 }
+void AnalyseTree(Point tree) {
+  Point p;
+  Point tent;
+  int flag = 0;
+  int tendas_e_opens = 0;
+  p = tree;
+  if (p.x > 0) {
+    if (Matriz[p.x - 1][p.y] == '0' || Matriz[p.x - 1][p.y] == 'T') {
+      tendas_e_opens++;
+      flag = 1;
+    }
+  }
+  if (p.x < L - 1) {
+    if (Matriz[p.x + 1][p.y] == '0' || Matriz[p.x + 1][p.y] == 'T') {
+      tendas_e_opens++;
+      flag = 2;
+    }
+  }
+  if (p.y > 0) {
+    if (Matriz[p.x][p.y - 1] == '0' || Matriz[p.x][p.y - 1] == 'T') {
+      tendas_e_opens++;
+      flag = 3;
+    }
+  }
+  if (p.y < C - 1) {
+    if (Matriz[p.x][p.y + 1] == '0' || Matriz[p.x][p.y + 1] == 'T') {
+      tendas_e_opens++;
+      flag = 4;
+    }
+  }
+  if (tendas_e_opens == 1) {
+    Matriz[p.x][p.y] = 'a';
+    if (flag == 1) {
+      tent.x = p.x - 1;
+      tent.y = p.y;
+      if (Matriz[tent.x][tent.y] == '0') {
+        Ltents[tent.x]--;
+        Ctents[tent.y]--;
+        tendas_rest--;
+      }
+      Matriz[tent.x][tent.y] = 't';
+      push(points_toAnalyse, &tent);
+    }
+    if (flag == 2) {
+      tent.x = p.x + 1;
+      tent.y = p.y;
+      if (Matriz[tent.x][tent.y] == '0') {
+        Ltents[tent.x]--;
+        Ctents[tent.y]--;
+        tendas_rest--;
+      }
+      Matriz[tent.x][tent.y] = 't';
+      push(points_toAnalyse, &tent);
+    }
+    if (flag == 3) {
+      tent.x = p.x;
+      tent.y = p.y - 1;
+      if (Matriz[tent.x][tent.y] == '0') {
+        Ltents[tent.x]--;
+        Ctents[tent.y]--;
+        tendas_rest--;
+      }
+      Matriz[tent.x][tent.y] = 't';
+      push(points_toAnalyse, &tent);
+    }
+    if (flag == 4) {
+      tent.x = p.x;
+      tent.y = p.y + 1;
+      if (Matriz[tent.x][tent.y] == '0') {
+        Ltents[tent.x]--;
+        Ctents[tent.y]--;
+        tendas_rest--;
+      }
+      Matriz[tent.x][tent.y] = 't';
+      push(points_toAnalyse, &tent);
+    }
+  }
+}
 
+void AnalysePoint(Point ponto) {
+  Point p;
+  int abertos;
+
+  if (Ltents[ponto.x] > 0) {
+    // Vê se a linha se tornou fácil
+    p.x = ponto.x;
+    abertos = 0;
+    for (p.y = 0; p.y < C; p.y++) {
+      if (Matriz[p.x][p.y] == '0')
+        abertos++;
+    }
+    if (abertos == Ltents[p.x]) {
+      Ltents[p.x] = 0;
+      for (p.y = 0; p.y < C; p.y++) {
+        if (Matriz[p.x][p.y] == '0') {
+          Matriz[p.x][p.y] = 'T';
+          Ctents[p.y]--;
+        tendas_rest--;
+          push(points_toAnalyse, &p);
+        }
+      }
+    }
+  }
+  if (Ctents[ponto.y] > 0) {
+    // Vê se a coluna se tornou fácil
+    abertos = 0;
+    p.y = ponto.y;
+    for (p.x = 0; p.x < L; p.x++) {
+      if (Matriz[p.x][p.y] == '0')
+        abertos++;
+    }
+    if (abertos == Ctents[p.y]) {
+      Ctents[p.y] = -1;
+      for (p.x = 0; p.x < L; p.x++) {
+        if (Matriz[p.x][p.y] == '0') {
+          Matriz[p.x][p.y] = 'T';
+          Ltents[p.x]--;
+        tendas_rest--;
+          push(points_toAnalyse, &p);
+        }
+      }
+    }
+  }
+  if (estacao_alta) {
+    // Ver se árvores adj podem ter-se tornado fáceis
+    if (ponto.x > 0) {
+      if (Matriz[ponto.x - 1][ponto.y] == 'A') {
+        p.x = ponto.x - 1;
+        p.y = ponto.y;
+        push(points_toAnalyse, &p);
+      }
+    }
+    if (ponto.x < L - 1) {
+      if (Matriz[ponto.x + 1][ponto.y] == 'A') {
+        p.x = ponto.x + 1;
+        p.y = ponto.y;
+        push(points_toAnalyse, &p);
+      }
+    }
+
+    if (ponto.y > 0) {
+      if (Matriz[ponto.x][ponto.y - 1] == 'A') {
+        p.x = ponto.x;
+        p.x = ponto.y - 1;
+        push(points_toAnalyse, &p);
+      }
+    }
+    if (ponto.y < C - 1) {
+      if (Matriz[ponto.x][ponto.y + 1] == 'A') {
+        p.x = ponto.x;
+        p.y = ponto.y + 1;
+        push(points_toAnalyse, &p);
+      }
+    }
+  }
+}
+/*void AnalyseSmallTree(Stack *points_toAnalyse, Point smalltree) {
+  Point p;
+  p = smalltree;
+  if (p.x > 0) {
+    if (Matriz[p.x - 1][p.y] == '0') {
+      p.x = p.x - 1;
+      p.y = p.y;
+      push(points_toAnalyse, &p);
+      return;
+    }
+  }
+  if (p.x < L - 1) {
+    if (Matriz[p.x + 1][p.y] == '0') {
+      p.x = p.x + 1;
+      p.y = p.y;
+      push(points_toAnalyse, &p);
+      return;
+    }
+  }
+  if (p.y > 0) {
+    if (Matriz[p.x][p.y - 1] == '0') {
+      p.x = p.x;
+      p.y = p.y - 1;
+      push(points_toAnalyse, &p);
+      return;
+    }
+  }
+  if (p.y < C - 1) {
+    if (Matriz[p.x][p.y + 1] == '0') {
+      p.x = p.x;
+      p.y = p.y + 1;
+      push(points_toAnalyse, &p);
+      return;
+    }
+  }
+}*/
+void AnalyseOpen(Point open) {
+  Point p;
+  p = open;
+  if (p.x > 0) {
+    if (Matriz[p.x - 1][p.y] == 'A')
+      return;
+  }
+  if (p.x < L - 1) {
+    if (Matriz[p.x + 1][p.y] == 'A')
+      return;
+  }
+  if (p.y > 0) {
+    if (Matriz[p.x][p.y - 1] == 'A')
+      return;
+  }
+  if (p.y < C - 1) {
+    if (Matriz[p.x][p.y + 1] == 'A')
+      return;
+  }
+  Matriz[p.x][p.y] = '.';
+  push(points_toAnalyse, &p);
+}
 void ChangePropagator(int x, int y) {
   Point p;
-  Stack *points_toAnalyse;
   char c;
-  points_toAnalyse = initStack(8, sizeof(Point));
   p.x = x;
   p.y = y;
   push(points_toAnalyse, &p);
@@ -81,9 +306,13 @@ void ChangePropagator(int x, int y) {
     pop(points_toAnalyse, &p);
     c = Matriz[p.x][p.y];
     if (c == 'T' || c == 't') {
-      AnalyseTent(points_toAnalyse, p, c == 't');
-    } else if (c == 'A') {
-      // Analisar arvore
+      AnalyseTent(p, c == 't');
+    } else if (c == '.') {
+      AnalysePoint(p);
+    } else if (c == 'A' && estacao_alta) {
+      AnalyseTree(p);
+    } else if (c == 'O') {
+      AnalyseOpen(p);
     }
   }
 }
@@ -96,8 +325,11 @@ int Guesser() {
   p.x = 0;
   p.y = 0;
   while (1) {
-    // printMatriz(Matriz, L, C);
-
+    /*printMatriz(Matriz, L, C);
+    if(Matriz[0][6] == 'T'){
+        p.x++;
+        p.x--;
+    }*/
     for (; p.x < L; p.x++) {
       for (; p.y < C; p.y++) {
         if (Matriz[p.x][p.y] == '0') {
@@ -186,11 +418,7 @@ int teste() {
     for (i = 0; i < L; i++) {
       for (j = 0; j < C; j++) {
         if (Matriz[i][j] == 'A') {
-          if (arvore_facil(i, j, Matriz, L, C, Ltents, Ctents, &tendas_rest)) {
-            // Começar de novo a procura com a nova informação.
-            i = -1;
-            j = C;
-          }
+          ChangePropagator(i, j);
         }
       }
     }
@@ -247,9 +475,9 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
 
   estacao_alta = tendas_rest == arvores;
 
+  points_toAnalyse = initStack(8, sizeof(Point));
   /*cria opens na matriz e verifica opens obvios */
   res = teste();
-
   if (res != 0) {
     beautify_matriz(Matriz, L, C);
     fprintf(fp2, "%d %d %d\n", L, C, res);
@@ -260,6 +488,10 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
       fprintf(fp2, "\n");
     }
     fprintf(fp2, "\n");
+    free(Ltents);
+    free(Ctents);
+    _free_matriz(Matriz, L);
+    freeStack(points_toAnalyse);
     return 0;
   }
 
@@ -274,8 +506,9 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
       fprintf(fp2, "\n");
     }
   }
-
   fprintf(fp2, "\n");
-
+  free(Ltents);
+  free(Ctents);
+  _free_matriz(Matriz, L);
   return 0;
 }
