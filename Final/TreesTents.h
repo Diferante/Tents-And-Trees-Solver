@@ -54,11 +54,11 @@ void add_around(int x, int y, int value, char **Matriz, int L, int C) ;
 void printMatriz(char **Matriz, int L, int C);
 
 
-/* Descrição: Verifica o número de árvores nas quatro direções
- * Argumentos: Posição (x,y) do mapa a ser verificado
- * Retorno: retorna o número de árvores diretamente adjacentes
+/* Descrição: Verifica se pode haver tenda nas quatro direções,
+ * coloca '0' nos que puderem
+ * Argumentos: Posição (x,y) da árvore a ser verificada
  * */
-int arvores_dir_adj(int x, int y, char **Matriz, int L, int C) ;
+void check_adj_for_opens(int x, int y, char **Matriz, int L, int C, int *Ltents, int *Ctents) ;
 /* Descrição: Verifica tendas em todas posições adjacentes
  * Argumentos: Posição (x,y) do mapa
  * Retorno: Retorna 0 se existir pelo menos uma tenda na adjacência, 1 se não
@@ -86,10 +86,10 @@ void teste_opens(int x, int y, int type, char **Matriz, int L, int C) ;
  * alterar Opens adjacentes para '.'.
  * Retorno: 1 se era isolada com 1 Open/'T', 0 se não.
  * */
-int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Ltents, int *Ctents, int *tendas_rest); 
+int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Ltents, int *Ctents, int *tendas_rest);
 
 /* Descrição: Transforma opens da linha em tendas e chama pontos_around para
- *remover os opens adjacentes 
+ *remover os opens adjacentes
  * Argumentos: linha x
  * */
 //void Linha_fill(int x, Jogo *jogo) ;
