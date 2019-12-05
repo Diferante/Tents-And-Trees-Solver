@@ -540,5 +540,6 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
     free(Ltents);
     free(Ctents);
     _free_matriz(Matriz, L);
+    freeStack(points_toAnalyse);
     return 0;
 }
