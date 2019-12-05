@@ -225,7 +225,7 @@ void AnalysePoint(Point ponto) {
     if (ponto.y > 0) {
       if (Matriz[ponto.x][ponto.y - 1] == 'A') {
         p.x = ponto.x;
-        p.x = ponto.y - 1;
+        p.y = ponto.y - 1;
         push(points_toAnalyse, &p);
       }
     }
@@ -304,6 +304,8 @@ void ChangePropagator(int x, int y) {
   push(points_toAnalyse, &p);
   while (!isEmpty(points_toAnalyse)) {
     pop(points_toAnalyse, &p);
+    /*printf("%d, %d\n", p.x, p.y);
+    printMatriz(Matriz, L, C);*/
     c = Matriz[p.x][p.y];
     if (c == 'T' || c == 't') {
       AnalyseTent(p, c == 't');
