@@ -12,13 +12,6 @@
 #define CIMA 1
 #define BAIXO -1
 
-/*#define T 'T'
-#define A 'A'
-#define O '0'
-#define t 't'
-#define a 'a'*/
-#define TMP_T 'C'
-#define TMP_A 'B'
 
 void _free_matriz(char **Matriz, int L) {
     int i;
@@ -310,6 +303,29 @@ void beautify_matriz(char **Matriz, int L, int C) {
     }
 }
 
+/* atualiza as arvores com par adj de (x, y)*/
+void add_trees_around(int x, int y, int value, char **Matriz, int L, int C){
+    if (x > 0) {
+        if (Matriz[x - 1][y] >= 'A' + 1 && Matriz[x - 1][y] <= 'A' + 4) {
+            Matriz[x - 1][y] += value;
+        }
+    }
+    if (x < L - 1) {
+        if (Matriz[x + 1][y] >= 'A' + 1 && Matriz[x + 1][y] <= 'A' + 4) {
+            Matriz[x + 1][y] += value;
+        }
+    }
+    if (y > 0) {
+        if (Matriz[x][y - 1] >= 'A' + 1 && Matriz[x][y - 1] <= 'A' + 4) {
+            Matriz[x][y - 1] += value;
+        }
+    }
+    if (y < C - 1) {
+        if (Matriz[x][y + 1] >= 'A' + 1 && Matriz[x][y + 1] <= 'A' + 4) {
+            Matriz[x][y + 1] += value;
+        }
+    }          
+}
 /* atualiza os Opens around (x, y)*/
 void add_around(int x, int y, int value, char **Matriz, int L, int C) {
     int j = 0;

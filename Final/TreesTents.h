@@ -19,9 +19,15 @@
 #define A 'A'
 #define O '0'
 #define t 't'
-#define a 'a'*/
-#define TMP_T 'C'
-#define TMP_A 'B'
+#define a 'a'
+//Celulas para backtrack do Guesser:
+pontos: 1 - 9
+tendas com par U - V
+arvores sem par B - E*/
+#define TMP_T 'G'
+#define TMP_A 'H'
+#define NEW_T_PAIRED 'b'
+#define NEW_T_UNPAIRED 'c'
 
 void _free_matriz(char **Matriz, int L);
 
