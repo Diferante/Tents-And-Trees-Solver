@@ -21,22 +21,21 @@
 #define t 't'
 #define a 'a'
 //Celulas para backtrack do Guesser:
-pontos: 1 - 9
-tendas com par U - V
-arvores sem par B - E*/
+	pontos: 1 - 9 
+*/
 #define TMP_T 'G'
 #define TMP_A 'H'
-#define NEW_T_PAIRED 'b'
-#define NEW_T_UNPAIRED 'c'
+#define NEW_T_PAIRED 'n'
+#define NEW_T_UNPAIRED 'N'
 
 void _free_matriz(char **Matriz, int L);
 
-void handle_int(int res, int i, int *somaL, int *somaC, int *Ltents, int *Ctents, int L, int C) ;
+void handle_int(int res, int i, int *somaL, int *somaC, int *Lrests, int *Crests, int L, int C) ;
 // Descrição: Lẽ as hints do ficheiro e soma os vetores.
 // Argumentos:
 // Retorno: -2 se ocorrer erro, se não devolve o número de tendas ou -1 caso os
 // vetores sejam coerentes.
-int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Ltents, int *Ctents) ;
+int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Lrests, int *Crests) ;
 
 // Descrição: Lê a matriz do ficheiro e conta as árvores.
 // Argumentos:
@@ -64,7 +63,7 @@ void printMatriz(char **Matriz, int L, int C);
  * coloca '0' nos que puderem
  * Argumentos: Posição (x,y) da árvore a ser verificada
  * */
-void check_adj_for_opens(int x, int y, char **Matriz, int L, int C, int *Ltents, int *Ctents) ;
+void check_adj_for_opens(int x, int y, char **Matriz, int L, int C, int *Lrests, int *Crests) ;
 /* Descrição: Verifica tendas em todas posições adjacentes
  * Argumentos: Posição (x,y) do mapa
  * Retorno: Retorna 0 se existir pelo menos uma tenda na adjacência, 1 se não
@@ -92,7 +91,7 @@ void teste_opens(int x, int y, int type, char **Matriz, int L, int C) ;
  * alterar Opens adjacentes para '.'.
  * Retorno: 1 se era isolada com 1 Open/'T', 0 se não.
  * */
-int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Ltents, int *Ctents, int *tendas_rest);
+int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Lrests, int *Crests, int *tendas_rest);
 
 /* Descrição: Transforma opens da linha em tendas e chama pontos_around para
  *remover os opens adjacentes

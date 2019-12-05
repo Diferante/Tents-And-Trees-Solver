@@ -8,6 +8,7 @@ void freeStack(Stack*);
 int isEmpty(Stack*);
 void push( Stack*, void* item);
 void pop(Stack*, void* dest);
+int ItemExists(Stack *stack, void *item, int equal(void *, void *));
 
 
 #endif // CHARSTACK_H_INCLUDED

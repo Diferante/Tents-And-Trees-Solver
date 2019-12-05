@@ -26,13 +26,13 @@ void _free_matriz(char **Matriz, int L) {
     free(Matriz);
 }
 
-void handle_int(int res, int i, int *somaL, int *somaC, int *Ltents,
-                int *Ctents, int L, int C) {
+void handle_int(int res, int i, int *somaL, int *somaC, int *Lrests,
+                int *Crests, int L, int C) {
     if (i < L) {
-        Ltents[i] = res;
+        Lrests[i] = res;
         *somaL += res;
     } else if (i - L < C) {
-        Ctents[i - L] = res;
+        Crests[i - L] = res;
         *somaC += res;
     }
 }
@@ -40,7 +40,7 @@ void handle_int(int res, int i, int *somaL, int *somaC, int *Ltents,
 // Argumentos:
 // Retorno: -2 se ocorrer erro, se não devolve o número de tendas ou -1 caso os
 // vetores sejam coerentes.
-int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Ltents, int *Ctents) {
+int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Lrests, int *Crests) {
     int i, n, res, somaL = 0, somaC = 0;
     int block_to_read, nbytes, bytes_skiped, digits_read, bytes_consumed;
     char *buffer, *pre_buffer, *end_ptr;
@@ -73,7 +73,7 @@ int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Ltents, int *Ctents) {
                 // Read the number that was supposed to be read last time
                 res = strtol(buffer - digits_read, &end_ptr, 10);
                 bytes_consumed = end_ptr - buffer;
-                handle_int(res, i, &somaL, &somaC, Ltents, Ctents, L, C);
+                handle_int(res, i, &somaL, &somaC, Lrests, Crests, L, C);
                 i++;
             }
             // Read buffer int by int
@@ -88,7 +88,7 @@ int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Ltents, int *Ctents) {
                     break;
                 }
                 bytes_consumed = end_ptr - buffer;
-                handle_int(res, i, &somaL, &somaC, Ltents, Ctents, L, C);
+                handle_int(res, i, &somaL, &somaC, Lrests, Crests, L, C);
             }
         }
         // Se só restam 3 -> ler o resto diretamente
@@ -108,14 +108,14 @@ int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Ltents, int *Ctents) {
             if (fscanf(fp, "%[0-9]", buffer) != 1)
                 buffer[0] = '\0';
             res = strtol(buffer - digits_read, &end_ptr, 10);
-            handle_int(res, i, &somaL, &somaC, Ltents, Ctents, L, C);
+            handle_int(res, i, &somaL, &somaC, Lrests, Crests, L, C);
             i++;
         }
         // Read remaining ints one by one
         for (; i < L + C; i++) {
             if (fscanf(fp, " %d", &res) != 1)
                 return -2;
-            handle_int(res, i, &somaL, &somaC, Ltents, Ctents, L, C);
+            handle_int(res, i, &somaL, &somaC, Lrests, Crests, L, C);
         }
     }
     free(pre_buffer);
@@ -148,7 +148,7 @@ int Fill_Matriz_easy(FILE *fp, char **Matriz, int L, int C) {
 }
 
 /*int check_linha_coluna(int l0, int c0, char **Matriz, int L, int C,
-                       int Ltents_l0, int Ctents_c0) {
+                       int Lrests_l0, int Crests_c0) {
   int i, j, somaL = 0, somaC = 0;
   for (i = l0, j = 0; j < c0 - 1; j++) {
     if (Matriz[i][j] == 'T' || Matriz[i][j] == 't')
@@ -167,7 +167,7 @@ int Fill_Matriz_easy(FILE *fp, char **Matriz, int L, int C) {
       somaC++;
   }
 
-  if (somaC >= Ctents_c0 || somaL >= Ltents_l0)
+  if (somaC >= Crests_c0 || somaL >= Lrests_l0)
     return 0;
   return 1;
 }*/
@@ -303,29 +303,7 @@ void beautify_matriz(char **Matriz, int L, int C) {
     }
 }
 
-/* atualiza as arvores com par adj de (x, y)*/
-void add_trees_around(int x, int y, int value, char **Matriz, int L, int C){
-    if (x > 0) {
-        if (Matriz[x - 1][y] >= 'A' + 1 && Matriz[x - 1][y] <= 'A' + 4) {
-            Matriz[x - 1][y] += value;
-        }
-    }
-    if (x < L - 1) {
-        if (Matriz[x + 1][y] >= 'A' + 1 && Matriz[x + 1][y] <= 'A' + 4) {
-            Matriz[x + 1][y] += value;
-        }
-    }
-    if (y > 0) {
-        if (Matriz[x][y - 1] >= 'A' + 1 && Matriz[x][y - 1] <= 'A' + 4) {
-            Matriz[x][y - 1] += value;
-        }
-    }
-    if (y < C - 1) {
-        if (Matriz[x][y + 1] >= 'A' + 1 && Matriz[x][y + 1] <= 'A' + 4) {
-            Matriz[x][y + 1] += value;
-        }
-    }          
-}
+
 /* atualiza os Opens around (x, y)*/
 void add_around(int x, int y, int value, char **Matriz, int L, int C) {
     int j = 0;
@@ -361,28 +339,28 @@ void printMatriz(char **Matriz, int L, int C) {
  * coloca '0' nos que puderem
  * Argumentos: Posição (x,y) da árvore a ser verificada
  * */
-void check_adj_for_opens(int x, int y, char **Matriz, int L, int C, int *Ltents, int *Ctents) {
-    if(Ctents[y] > 0) {
+void check_adj_for_opens(int x, int y, char **Matriz, int L, int C, int *Lrests, int *Crests) {
+    if(Crests[y] > 0) {
         if (x > 0) {
-            if (Ltents[x - 1] > 0 && Matriz[x - 1][y] == '.' && sem_tendas_adj(x-1, y, Matriz, L, C)) {
+            if (Lrests[x - 1] > 0 && Matriz[x - 1][y] == '.' && sem_tendas_adj(x-1, y, Matriz, L, C)) {
                 Matriz[x-1][y] = '0';
             }
         }
         if (x < L - 1) {
-            if (Ltents[x+1] > 0 && Matriz[x + 1][y] == '.' && sem_tendas_adj(x+1, y, Matriz, L, C)) {
+            if (Lrests[x+1] > 0 && Matriz[x + 1][y] == '.' && sem_tendas_adj(x+1, y, Matriz, L, C)) {
                 Matriz[x+1][y] = '0';
             }
         }
     }
 
-    if(Ltents[x] > 0) {
+    if(Lrests[x] > 0) {
         if (y > 0) {
-            if (Ctents[y-1] > 0&& Matriz[x][y - 1] == '.' && sem_tendas_adj(x, y-1, Matriz, L, C)) {
+            if (Crests[y-1] > 0&& Matriz[x][y - 1] == '.' && sem_tendas_adj(x, y-1, Matriz, L, C)) {
                 Matriz[x][y-1] = '0';
             }
         }
         if (y < C - 1) {
-            if ( Ctents[y+1] > 0 && Matriz[x][y + 1] == '.' && sem_tendas_adj(x, y+1, Matriz, L, C)) {
+            if ( Crests[y+1] > 0 && Matriz[x][y + 1] == '.' && sem_tendas_adj(x, y+1, Matriz, L, C)) {
                 Matriz[x][y+1] = '0';
             }
         }
@@ -509,8 +487,8 @@ return;
  * alterar Opens adjacentes para '.'.
  * Retorno: 1 se era isolada com 1 Open/'T', 0 se não.
  * */
-int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Ltents,
-                 int *Ctents, int *tendas_rest) {
+int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Lrests,
+                 int *Crests, int *tendas_rest) {
     int tendas_e_opens = 0; // Número de opens '0' e tendas sem par 'T'
     int flag = 0;
     if (x > 0) {
@@ -548,32 +526,32 @@ int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Ltents,
     if (flag == 1) {
         Matriz[x - 1][y] = 't';
         (*tendas_rest)--;
-        Ltents[x - 1]--;
-        Ctents[y]--;
+        Lrests[x - 1]--;
+        Crests[y]--;
         pontos_around(x - 1, y, Matriz, L, C);
         return 1;
     }
     if (flag == 2) {
         Matriz[x + 1][y] = 't';
         (*tendas_rest)--;
-        Ltents[x + 1]--;
-        Ctents[y]--;
+        Lrests[x + 1]--;
+        Crests[y]--;
         pontos_around(x + 1, y, Matriz, L, C);
         return 1;
     }
     if (flag == 3) {
         Matriz[x][y - 1] = 't';
         (*tendas_rest)--;
-        Ltents[x]--;
-        Ctents[y - 1]--;
+        Lrests[x]--;
+        Crests[y - 1]--;
         pontos_around(x, y - 1, Matriz, L, C);
         return 1;
     }
     if (flag == 4) {
         Matriz[x][y + 1] = 't';
         (*tendas_rest)--;
-        Ltents[x]--;
-        Ctents[y + 1]--;
+        Lrests[x]--;
+        Crests[y + 1]--;
         pontos_around(x, y + 1, Matriz, L, C);
         return 1;
     }
@@ -590,7 +568,7 @@ int arvore_facil(int x, int y, char **Matriz, int L, int C, int *Ltents,
     if (jogo->Matriz[x][j] == '0') {
       jogo->Matriz[x][j] = 'T';
       jogo->tendas_rest--;
-      jogo->Ctents[j]--;
+      jogo->Crests[j]--;
       pontos_around(x, j);
     }
   }
