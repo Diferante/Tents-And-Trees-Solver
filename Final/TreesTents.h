@@ -50,6 +50,10 @@ void move_dir(int *l_out, int *c_out, char dir) ;
 // tenha árvore disponível, 1 caso contrário.
 char isT_alone_iter(int l0, int c0, char **Matriz, int L, int C) ;
 
+/* Descrição: 1 se c for uma tenda, 0 se não.
+ * */
+int isTent(char c);
+
 void repair_matriz(char **Matriz, int L, int C) ;
 void beautify_matriz(char **Matriz, int L, int C) ;
 

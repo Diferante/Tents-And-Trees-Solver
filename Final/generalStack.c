@@ -38,7 +38,7 @@ Stack *initStack(unsigned int initial_size, unsigned int item_size) {
 
 int isEmpty(Stack *stack) { return stack->i == 0 && stack->head->next == NULL; }
 
-int ItemExists(Stack *stack, void *item, int equal(void *, void *)) {
+int itemExists(Stack *stack, void *item, int equal(void *, void *)) {
   struct node *node_ptr;
   int i;
 

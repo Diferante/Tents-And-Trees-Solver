@@ -14,16 +14,63 @@ int tendas_rest;
 int arvores;
 char estacao_alta;
 Stack *points_toAnalyse;
-
+// Variaveis para backtracking: ----
+int record_changes;
+Stack *b_chars;       // Os char alterados.
+Stack *b_points;      // As coordenadas dos char alterados.
+Stack *b_n;           // O nmr de char's alterados após cada snapshot.
+int n_since_snapshot; // O nmr de char's alterados após o último snapshot.
+// ----
 typedef struct {
   int x, y;
 } Point;
 
-int PointsAreEqual(Point *p1, Point *p2) {
-  return p1->x == p2->x && p1->y == p2->y;
+int PointsAreEqual(void *p1, void *p2) {
+  return ((Point *)p1)->x == ((Point *)p2)->x &&
+         ((Point *)p1)->y == ((Point *)p2)->y;
+}
+/* Descrição: Regista a alterção de um ponto para permitir backtracking.
+ * */
+void regista_alteracao(Point point, char old_value) {
+  // Se o ponto já foi guardado não interessa guardar o valor intermedio
+  if (!itemExists(b_points, &point, PointsAreEqual)) {
+    push(b_points, &point);
+    push(b_chars, &old_value);
+    n_since_snapshot++;
+  }
+}
+/* Descrição: Cria um snapshot para onde é possível fazer backtrack.
+ * */
+void create_snapshot() {
+  push(b_n, &n_since_snapshot);
+  n_since_snapshot = 0;
+}
+/* Descrição: Reverte as alterações desde o último snapshot;
+ * */
+void revert_snapshot() {
+  Point p;
+  char old_value;
+  for (; n_since_snapshot > 0; n_since_snapshot--) {
+    pop(b_points, &p);
+    pop(b_chars, &old_value);
+    if (isTent(Matriz[p.x][p.y]) && !isTent(old_value)) {
+      tendas_rest++;
+      Lrests[p.x]++;
+      Crests[p.y]++;
+    }
+    Matriz[p.x][p.y] = old_value;
+  }
+  pop(b_n, &n_since_snapshot);
+}
+/* Descrição: Altera a matriz e opcionalmente guarda a alteração
+ * */
+void edit_matriz(Point point, char new_char) {
+  if (record_changes) {
+    regista_alteracao(point, Matriz[point.x][point.y]);
+  }
+  Matriz[point.x][point.y] = new_char;
 }
 
-// Não necessáriamente uma tenda nova
 void AnalyseTent(Point tent, int isPaired, int isNew) {
   Point p, a;
   int arvores_sem_par = 0;
@@ -32,7 +79,7 @@ void AnalyseTent(Point tent, int isPaired, int isNew) {
     for (p.y = tent.y - 1; p.y <= tent.y + 1; p.y++) {
       if (p.x >= 0 && p.x < L && p.y >= 0 && p.y < C) {
         if (isNew && Matriz[p.x][p.y] == '0') {
-          Matriz[p.x][p.y] = '.';
+          edit_matriz(p, '.');
           push(points_toAnalyse, &p);
         } else if (p.x == tent.x ||
                    p.y == tent.y) { // Se é adjacente não diagonal
@@ -49,12 +96,9 @@ void AnalyseTent(Point tent, int isPaired, int isNew) {
   // Se só há uma árvore sem par adj esta tem de ser a par
   if (!isPaired && arvores_sem_par == 1) {
     isPaired = 1;
-    Matriz[a.x][a.y] = 'a';
-    Matriz[tent.x][tent.y] = 't';
-    // é mais fácil tratar já da 'a' enquanto se sabe a direção do
-    // potencial open
-    // push(points_toAnalyse, &a);
-    // Se houver open ou tenda estará na direção de
+    edit_matriz(a, 'a');
+    edit_matriz(tent, 't');
+    // Se houver open ou tenda adj a 'a' estará na direção de
     // 't' para 'a' a duas células de distância
     p.x = tent.x + 2 * (a.x - tent.x);
     p.y = tent.y + 2 * (a.y - tent.y);
@@ -66,16 +110,16 @@ void AnalyseTent(Point tent, int isPaired, int isNew) {
   }
   if (isNew) {
     if (isPaired)
-      Matriz[tent.x][tent.y] = 't';
+      edit_matriz(tent, 't');
     else
-      Matriz[tent.x][tent.y] = 'T';
+      edit_matriz(tent, 'T');
     // Verificar limites linha e coluna
     if (Lrests[tent.x] == 0) {
       p = tent;
       // Limpa opens da linha
       for (p.y = 0; p.y < C; p.y++) {
         if (Matriz[p.x][p.y] == '0') {
-          Matriz[p.x][p.y] = '.';
+          edit_matriz(p, '.');
           push(points_toAnalyse, &p);
         }
       }
@@ -85,7 +129,7 @@ void AnalyseTent(Point tent, int isPaired, int isNew) {
       // Limpa opens da coluna
       for (p.x = 0; p.x < L; p.x++) {
         if (Matriz[p.x][p.y] == '0') {
-          Matriz[p.x][p.y] = '.';
+          edit_matriz(p, '.');
           push(points_toAnalyse, &p);
         }
       }
@@ -127,7 +171,7 @@ void AnalyseTree(Point tree) {
     }
   }
   if (tendas_e_opens == 1) {
-    Matriz[p.x][p.y] = 'a';
+    edit_matriz(p, 'a');
     if (flag == 1) {
       tent.x = p.x - 1;
       tent.y = p.y;
@@ -147,9 +191,9 @@ void AnalyseTree(Point tree) {
         Crests[tent.y]--;
         tendas_rest--;
       }
-      Matriz[tent.x][tent.y] = NEW_T_PAIRED;
+      edit_matriz(tent, NEW_T_PAIRED);
     } else {
-      Matriz[tent.x][tent.y] = 't';
+      edit_matriz(tent, 't');
     }
     push(points_toAnalyse, &tent);
   }
@@ -261,7 +305,7 @@ void AnalyseLinhaColunaLimits(Point ponto) {
           if (comprimento % 2 == 1) {
             // em blocos impares as tendas são as pontas e dois em dois
             for (p.y = i - 1; i - p.y <= comprimento; p.y -= 2) {
-              Matriz[p.x][p.y] = NEW_T_UNPAIRED;
+              edit_matriz(p, NEW_T_UNPAIRED);
               Crests[p.y]--;
               Lrests[p.x]--;
               tendas_rest--;
@@ -275,7 +319,7 @@ void AnalyseLinhaColunaLimits(Point ponto) {
       // se o ultimo for de um bloco impar ainda falta alterar o bloco
       if (comprimento % 2 == 1) {
         for (p.y = i - 1; i - p.y <= comprimento; p.y -= 2) {
-          Matriz[p.x][p.y] = NEW_T_UNPAIRED;
+          edit_matriz(p, NEW_T_UNPAIRED);
           Crests[p.y]--;
           Lrests[p.x]--;
           tendas_rest--;
@@ -313,7 +357,7 @@ void AnalyseLinhaColunaLimits(Point ponto) {
           if (comprimento % 2 == 1) {
             // em blocos impares as tendas são as pontas e dois em dois
             for (p.x = i - 1; i - p.x <= comprimento; p.x -= 2) {
-              Matriz[p.x][p.y] = NEW_T_UNPAIRED;
+              edit_matriz(p, NEW_T_UNPAIRED);
               Lrests[p.x]--;
               Crests[p.y]--;
               tendas_rest--;
@@ -327,7 +371,7 @@ void AnalyseLinhaColunaLimits(Point ponto) {
       // se o ultimo for de um bloco impar ainda falta alterar o bloco
       if (comprimento % 2 == 1) {
         for (p.x = i - 1; i - p.x <= comprimento; p.x -= 2) {
-          Matriz[p.x][p.y] = NEW_T_UNPAIRED;
+          edit_matriz(p, NEW_T_UNPAIRED);
           Lrests[p.x]--;
           Crests[p.y]--;
           tendas_rest--;
@@ -430,7 +474,7 @@ void AnalyseOpen(Point open) {
     if (Matriz[p.x][p.y + 1] == 'A')
       return;
   }
-  Matriz[p.x][p.y] = '.';
+  edit_matriz(p, '.');
   push(points_toAnalyse, &p);
 }
 
@@ -445,7 +489,7 @@ void ChangePropagator(int x, int y, int line_column_test) {
   char c;
   p.x = x;
   p.y = y;
-  
+
   if (line_column_test) {
     AnalyseLinhaColunaLimits(p);
   } else {
@@ -453,8 +497,8 @@ void ChangePropagator(int x, int y, int line_column_test) {
   }
   while (!isEmpty(points_toAnalyse)) {
     pop(points_toAnalyse, &p);
-    //printf("%d, %d\n", p.x, p.y);
-    //printMatriz(Matriz, L, C);
+    // printf("%d, %d\n", p.x, p.y);
+    // printMatriz(Matriz, L, C);
     c = Matriz[p.x][p.y];
     if (c == 'T' || c == 't' || c == NEW_T_UNPAIRED || c == NEW_T_PAIRED) {
       AnalyseTent(p, (c == 't' || c == NEW_T_PAIRED),
@@ -463,7 +507,7 @@ void ChangePropagator(int x, int y, int line_column_test) {
       AnalysePoint(p);
     } else if (c == 'A' && estacao_alta) {
       AnalyseTree(p);
-    } else if (c == 'O') {
+    } else if (c == '0') {
       AnalyseOpen(p);
     }
   }
@@ -471,14 +515,18 @@ void ChangePropagator(int x, int y, int line_column_test) {
 
 int Guesser() {
   Point p;
-  Stack *jogadas;
+  Stack *jogadas; // Pontos adivinhados como tendas.
 
   jogadas = initStack(8, sizeof(Point));
+  b_points = initStack(8, sizeof(Point));
+  b_chars = initStack(8, 1);
+  b_n = initStack(8, sizeof(int));
+  record_changes = 1;
   p.x = 0;
   p.y = 0;
   while (1) {
-    /*printMatriz(Matriz, L, C);
-    if(Matriz[0][6] == 'T'){
+    printMatriz(Matriz, L, C);
+    /*if(Matriz[0][6] == 'T'){
         p.x++;
         p.x--;
     }*/
@@ -486,12 +534,14 @@ int Guesser() {
       for (; p.y < C; p.y++) {
         if (Matriz[p.x][p.y] == '0') {
           if (Lrests[p.x] > 0 && Crests[p.y] > 0) {
-            Matriz[p.x][p.y] = 'T';
-            add_around(p.x, p.y, 1, Matriz, L, C);
+            Matriz[p.x][p.y] = NEW_T_UNPAIRED;
+            // add_around(p.x, p.y, 1, Matriz, L, C);
             push(jogadas, &p);
             tendas_rest--;
             Lrests[p.x]--;
             Crests[p.y]--;
+            create_snapshot();
+            ChangePropagator(p.x, p.y, 0);
             break;
           }
         }
@@ -499,20 +549,6 @@ int Guesser() {
       if (p.y != C)
         break;
       p.y = 0;
-    }
-    if (p.x == L) {
-      if (isEmpty(jogadas)) {
-        freeStack(jogadas);
-        return -1; // Impossible
-      }
-      pop(jogadas, &p);
-      Matriz[p.x][p.y] = '0';
-      add_around(p.x, p.y, -1, Matriz, L, C);
-      tendas_rest++;
-      Lrests[p.x]++;
-      Crests[p.y]++;
-      p.y++;
-      continue;
     }
     if (tendas_rest == 0) {
       for (p.x = 0; p.x < L; p.x++) {
@@ -526,9 +562,32 @@ int Guesser() {
       repair_matriz(Matriz, L, C);
       if (p.x == L) {
         freeStack(jogadas);
+        freeStack(b_chars);
+        freeStack(b_points);
+        freeStack(b_n);
         beautify_matriz(Matriz, L, C);
         return 1; // Win;
       }
+      p.x = L;
+    }
+    if (p.x == L) {
+      if (isEmpty(jogadas)) {
+        freeStack(jogadas);
+        freeStack(b_chars);
+        freeStack(b_points);
+        freeStack(b_n);
+        return -1; // Impossible
+      }
+      revert_snapshot();
+      pop(jogadas, &p);
+      Matriz[p.x][p.y] = '0';
+      edit_matriz(p, '.');
+      tendas_rest++;
+      Lrests[p.x]++;
+      Crests[p.y]++;
+      ChangePropagator(p.x, p.y, 0);
+      // add_around(p.x, p.y, -1, Matriz, L, C);
+      p.y++;
     }
   }
 }
