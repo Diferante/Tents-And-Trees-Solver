@@ -42,7 +42,7 @@ Stack *initStack(unsigned int initial_size, unsigned int item_size) {
 
 int isEmpty(Stack *stack) { return stack->i == 0 && stack->head->next == NULL; }
 
-int itemExists(Stack *stack, void *item, int equal(void *, void *)) {
+int itemExists(Stack *stack, void *item, int max_depth, int equal(void *, void *)) {
   struct node *node_ptr;
   int i, n;
 
@@ -51,11 +51,14 @@ int itemExists(Stack *stack, void *item, int equal(void *, void *)) {
   i = stack->i - 1;
   while (node_ptr != NULL) {
     for (; i >= 0; i--) {
-      printf("(%d, %d) ", ((Point *)item)->x, ((Point *)item)->y);
+      /*printf("(%d, %d) ", ((Point *)item)->x, ((Point *)item)->y);
       printf("%d %d %d ", i, stack->itemSize, i * stack->itemSize);
-        printf("(%d, %d)\n", ((Point *)(node_ptr->Items+i*stack->itemSize))->x, ((Point *)(node_ptr->Items+i*stack->itemSize))->y);
-
-      if (equal(item, node_ptr->Items+i*stack->itemSize))
+        printf("(%d, %d)\n", ((Point *)(node_ptr->Items+i*stack->itemSize))->x,
+      ((Point *)(node_ptr->Items+i*stack->itemSize))->y);
+        */
+        if(max_depth == 0) return 0;
+        if(max_depth > 0) max_depth--;
+      if (equal(item, node_ptr->Items + i * stack->itemSize))
         return 1;
     }
     node_ptr = node_ptr->next;

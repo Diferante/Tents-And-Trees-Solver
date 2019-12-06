@@ -53,6 +53,12 @@ char isT_alone_iter(int l0, int c0, char **Matriz, int L, int C) ;
 /* Descrição: 1 se c for uma tenda, 0 se não.
  * */
 int isTent(char c);
+/* Descrição: 1 se c for uma tenda com par, 0 se não.
+ * */
+int isPairedTent(char c);
+/* Descrição: 1 se c for uma nova tenda, 0 se não.
+ * */
+int isNewTent(char c);
 
 void repair_matriz(char **Matriz, int L, int C) ;
 void beautify_matriz(char **Matriz, int L, int C) ;

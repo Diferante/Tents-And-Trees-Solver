@@ -278,6 +278,16 @@ int isTent(char c) {
   return c == 't' || c == 'T' || c == NEW_T_UNPAIRED || c == NEW_T_PAIRED;
 }
 
+/* Descrição: 1 se c for uma tenda com par, 0 se não.
+ * */
+int isPairedTent(char c) {
+  return c == 't' || c == NEW_T_PAIRED;
+}
+/* Descrição: 1 se c for uma nova tenda, 0 se não.
+ * */
+int isNewTent(char c) {
+  return c == NEW_T_UNPAIRED || c == NEW_T_PAIRED;
+}
 void repair_matriz(char **Matriz, int L, int C) {
   int i, j;
   for (i = 0; i < L; i++) {
