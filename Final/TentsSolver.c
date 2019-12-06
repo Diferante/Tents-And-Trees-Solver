@@ -45,7 +45,9 @@ void regista_alteracao(Point point, char old_value) {
  * */
 void create_snapshot() {
   push(b_n, &n_since_snapshot);
-  n_since_snapshot = 0;
+  n_since_snapshot = 0;  
+  printf("Save\n");
+  printMatriz(Matriz, L, C);
 }
 /* Descrição: Reverte as alterações desde o último snapshot;
  * */
@@ -63,6 +65,8 @@ void revert_snapshot() {
     Matriz[p.x][p.y] = old_value;
   }
   pop(b_n, &n_since_snapshot);
+  printf("Revert to\n");
+  printMatriz(Matriz, L, C);
 }
 /* Descrição: Altera a matriz e opcionalmente guarda a alteração
  * */

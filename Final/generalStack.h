@@ -1,5 +1,5 @@
-#ifndef CHARSTACK_H_INCLUDED
-#define CHARSTACK_H_INCLUDED
+#ifndef GENERALSTACK_H_INCLUDED
+#define GENERALSTACK_H_INCLUDED
 
 typedef struct _stack Stack;
 
@@ -11,4 +11,4 @@ void pop(Stack*, void* dest);
 int itemExists(Stack *stack, void *item, int max_depth, int equal(void *, void *));
 
 
-#endif // CHARSTACK_H_INCLUDED
+#endif // GENERALSTACK_H_INCLUDED

@@ -17,6 +17,7 @@ struct _stack {
   unsigned int i; // First empty space
   unsigned int n; // Current table size
   unsigned int itemSize;
+  unsigned int initialSize;
 };
 
 Stack *initStack(unsigned int initial_size, unsigned int item_size) {
@@ -35,6 +36,7 @@ Stack *initStack(unsigned int initial_size, unsigned int item_size) {
 
   newSt->head->next = NULL;
   newSt->n = initial_size;
+  newSt->initialSize = initial_size;
   newSt->itemSize = item_size;
   newSt->i = 0;
   return newSt;
@@ -62,7 +64,7 @@ int itemExists(Stack *stack, void *item, int max_depth, int equal(void *, void *
         return 1;
     }
     node_ptr = node_ptr->next;
-    n = n / 2;
+    n = n - stack->initialSize;
     i = n - 1;
   }
   return 0;
@@ -95,7 +97,7 @@ void push(Stack *stack, void *item) {
   itemSize = stack->itemSize;
 
   if (i == n) {
-    n = 2 * n;
+    n = n + stack->initialSize;
     // Check for overflow, since i == old n :
     if (i >= n)
       exit(0);
@@ -129,7 +131,7 @@ void pop(Stack *stack, void *dest) {
     if (stack->head->next == NULL)
       exit(0);
 
-    stack->n /= 2;
+    stack->n -= stack->initialSize;
     old = stack->head;
     stack->head = stack->head->next;
     free(old->Items);
