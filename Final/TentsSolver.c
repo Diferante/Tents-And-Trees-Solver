@@ -581,8 +581,7 @@ int teste() {
 }
 
 int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
-  int i, j, res, somaC;
-  // Point *open_stack;
+  int i, j, res;
 
   L = l;
   C = c;
@@ -595,48 +594,10 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
     exit(0);
   }
 
-  // tendas_rest = Fill_Hints_checkSums(fpointer, L, C, Lrests, Crests);
-  res = 0;
-  tendas_rest = 0;
-  somaC = 0;
-  for (i = 0; i < L; i++) {
-    if (fscanf(fpointer, " %d", &j) != 1) {
-      res = -2;
-      break;
-    }
-    if (j < 0) {
-      res = -1;
-      break;
-    }
-    tendas_rest += j;
-    Lrests[i] = j;
-  }
-  if (res != 0) {
-    fprintf(fp2, "%d %d %d\n\n", L, C, res);
-    free(Crests);
-    free(Lrests);
-    return 0;
-  }
-  for (i = 0; i < C; i++) {
-    if (fscanf(fpointer, " %d", &j) != 1) {
-      res = -2;
-      break;
-    }
-    if (j < 0) {
-      res = -1;
-      break;
-    }
-    somaC += j;
-    Crests[i] = j;
-  }
-  if (res != 0) {
-    fprintf(fp2, "%d %d %d\n\n", L, C, res);
-    free(Crests);
-    free(Lrests);
-    return 0;
-  }
-  if (tendas_rest != somaC) {
-    fprintf(fp2, "%d %d %d\n\n", L, C, -1);
+  tendas_rest = Fill_Hints_checkSums(fpointer, L, C, Lrests, Crests);
+  
+  if (tendas_rest < 0) {
+    fprintf(fp2, "%d %d %d\n\n", L, C, tendas_rest);
     free(Crests);
     free(Lrests);
     return 0;

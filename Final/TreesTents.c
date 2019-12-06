@@ -5,8 +5,6 @@
 #include "TreesTents.h"
 #include "generalStack.h"
 
-#define BUFFER_SIZE 1024 * 16
-
 #define DIR 2 // direita, esquerda, cima e baixo
 #define ESQ -2
 #define CIMA 1
@@ -35,11 +33,50 @@ void handle_int(int res, int i, int *somaL, int *somaC, int *Lrests,
     *somaC += res;
   }
 }
+
+// Descrição: Lẽ as hints do ficheiro e soma os vetores.
+// Argumentos:
+// Retorno: -2 se ocorrer erro, se não devolve o número de tendas ou -1 caso os
+// vetores sejam coerentes ou alguma seja negativo.
+int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Lrests, int *Crests) {
+  int i, j, tendas, res, somaC;
+
+  res = 0;
+  tendas = 0;
+  somaC = 0;
+  for (i = 0; i < L; i++) {
+    if (fscanf(fp, " %d", &j) != 1) {
+      res = -2;
+      break;
+    }
+    if (j < 0) {
+      res = -1;
+    }
+    tendas += j;
+    Lrests[i] = j;
+  }
+  for (i = 0; i < C; i++) {
+    if (fscanf(fp, " %d", &j) != 1) {
+      res = -2;
+      break;
+    }
+    if (j < 0) {
+      res = -1;
+    }
+    somaC += j;
+    Crests[i] = j;
+  }
+  if (res < 0)
+    return res;
+  if (tendas != somaC)
+    return -1;
+  return tendas;
+}
 // Descrição: Lẽ as hints do ficheiro e soma os vetores.
 // Argumentos:
 // Retorno: -2 se ocorrer erro, se não devolve o número de tendas ou -1 caso os
 // vetores sejam coerentes.
-int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Lrests, int *Crests) {
+/*int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Lrests, int *Crests) {
   int i, n, res, somaL = 0, somaC = 0;
   int block_to_read, nbytes, bytes_skiped, digits_read, bytes_consumed;
   char *buffer, *pre_buffer, *end_ptr;
@@ -121,7 +158,7 @@ int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Lrests, int *Crests) {
   if (somaL != somaC)
     return -1;
   return somaL;
-}
+}*/
 
 // Descrição: Lê a matriz do ficheiro e conta as árvores.
 // Argumentos:
@@ -280,14 +317,10 @@ int isTent(char c) {
 
 /* Descrição: 1 se c for uma tenda com par, 0 se não.
  * */
-int isPairedTent(char c) {
-  return c == 't' || c == NEW_T_PAIRED;
-}
+int isPairedTent(char c) { return c == 't' || c == NEW_T_PAIRED; }
 /* Descrição: 1 se c for uma nova tenda, 0 se não.
  * */
-int isNewTent(char c) {
-  return c == NEW_T_UNPAIRED || c == NEW_T_PAIRED;
-}
+int isNewTent(char c) { return c == NEW_T_UNPAIRED || c == NEW_T_PAIRED; }
 void repair_matriz(char **Matriz, int L, int C) {
   int i, j;
   for (i = 0; i < L; i++) {
