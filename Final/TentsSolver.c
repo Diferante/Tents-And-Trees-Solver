@@ -45,7 +45,7 @@ void regista_alteracao(Point point, char old_value) {
  * */
 void create_snapshot() {
   push(b_n, &n_since_snapshot);
-  n_since_snapshot = 0;  
+  n_since_snapshot = 0;
 }
 /* Descrição: Reverte as alterações desde o último snapshot;
  * */
@@ -232,7 +232,7 @@ int AnalyseLinhaColunaLimits(Point ponto) {
     }
     if (espacos_livres < Lrests[p.x])
       return -1;
-    else if (espacos_livres == Lrests[p.x]) {
+    if (espacos_livres == Lrests[p.x]) {
       comprimento = 0;
       for (i = 0; i < C; i++) {
         if (Matriz[p.x][i] == '0')
@@ -286,7 +286,7 @@ int AnalyseLinhaColunaLimits(Point ponto) {
 
     if (espacos_livres < Crests[p.y])
       return -1;
-    else if (espacos_livres == Crests[p.y]) {
+    if (espacos_livres == Crests[p.y]) {
       comprimento = 0;
       for (i = 0; i < L; i++) {
         if (Matriz[i][p.y] == '0') {
@@ -360,42 +360,6 @@ int AnalysePoint(Point ponto) {
   return 0;
 }
 
-/*void AnalyseSmallTree(Stack *points_toAnalyse, Point smalltree) {
-  Point p;
-  p = smalltree;
-  if (p.x > 0) {
-    if (Matriz[p.x - 1][p.y] == '0') {
-      p.x = p.x - 1;
-      p.y = p.y;
-      push(points_toAnalyse, &p);
-      return;
-    }
-  }
-  if (p.x < L - 1) {
-    if (Matriz[p.x + 1][p.y] == '0') {
-      p.x = p.x + 1;
-      p.y = p.y;
-      push(points_toAnalyse, &p);
-      return;
-    }
-  }
-  if (p.y > 0) {
-    if (Matriz[p.x][p.y - 1] == '0') {
-      p.x = p.x;
-      p.y = p.y - 1;
-      push(points_toAnalyse, &p);
-      return;
-    }
-  }
-  if (p.y < C - 1) {
-    if (Matriz[p.x][p.y + 1] == '0') {
-      p.x = p.x;
-      p.y = p.y + 1;
-      push(points_toAnalyse, &p);
-      return;
-    }
-  }
-}*/
 void AnalyseOpen(Point open) {
   Point p;
   p = open;
@@ -431,7 +395,7 @@ int ChangePropagator(int x, int y, int line_column_test) {
   char c;
   p.x = x;
   p.y = y;
-  //printf("\nnew Prop\n");
+  // printf("\nnew Prop\n");
   if (line_column_test) {
     AnalyseLinhaColunaLimits(p);
   } else {
@@ -440,9 +404,9 @@ int ChangePropagator(int x, int y, int line_column_test) {
   while (!isEmpty(points_toAnalyse)) {
     pop(points_toAnalyse, &p);
     // printf("%d, %d\n", p.x, p.y);
-    //printf("rests %d\n", tendas_rest);
-    //printMatriz(Matriz, L, C);
-    //getchar();
+    // printf("rests %d\n", tendas_rest);
+    // printMatriz(Matriz, L, C);
+    // getchar();
     /*if (Matriz[7][2] == 't') {
       p.x++;
       p.x--;
@@ -516,7 +480,7 @@ int Guesser() {
       Matriz[p.x][p.y] = '0';
       edit_matriz(p, '.');
       if (ChangePropagator(p.x, p.y, 0) == -1) {
-        p.x = L-1;
+        p.x = L - 1;
         p.y = C - 1;
       }
       // add_around(p.x, p.y, -1, Matriz, L, C);
@@ -634,8 +598,9 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
   tendas_rest = Fill_Hints_checkSums(fpointer, L, C, Lrests, Crests);
 
   if (tendas_rest < 0) {
-
-    fprintf(fp2, "%d %d %d\n\n", L, C, -1);
+    fprintf(fp2, "%d %d %d\n\n", L, C, tendas_rest);
+    free(Crests);
+    free(Lrests);
     return 0;
   }
 
@@ -645,7 +610,16 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
 
   arvores = Fill_Matriz_easy(fpointer, Matriz, L, C);
 
+  if (arvores < 0) {
+    fprintf(fp2, "%d %d %d\n\n", L, C, -2);
+    free(Crests);
+    free(Lrests);
+    _free_matriz(Matriz, L);
+    return 0;
+  }
+
   if (tendas_rest > arvores) {
+  	fprintf(fp2, "%d %d %d\n\n", L, C, -1);
     free(Lrests);
     free(Crests);
     _free_matriz(Matriz, L);
