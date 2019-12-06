@@ -34,14 +34,13 @@ check:
 verify:
 	@printf "Starting verifys;\n"
 	find tests/ -maxdepth 1 -name "*.camp" -execdir printf "Verifying {}:  " \; -execdir sh -c './rangerMacOS {}; echo $$?' \;
-	./tests/rangerMacOS  tests/enunciado01.camp; echo $$?
 	@printf "done;\n"
 
 
 testmem:
 	reset
 	rm -f massifreport
-	valgrind  --main-stacksize=20000000 --stacks=yes --threshold=10.0 --massif-out-file=massifreport --tool=massif ./$(TARGET) memtests.camp0 
+	valgrind  --stacks=yes --threshold=10.0 --massif-out-file=massifreport --tool=massif ./$(TARGET) test/boring27.camp 
 	ms_print --threshold=10.0 massifreport
 
 testa:
