@@ -1,7 +1,7 @@
 # compiler
 
 CC = gcc
-CFLAGS = -Wall -std=c99 -O3
+CFLAGS = -Wall -std=c99 -O3 
 TARGET = campista
 export TARGET
 
@@ -12,7 +12,7 @@ OBJECTS = CAMPistA.o TentsSolver.o TreesTents.o generalStack.o
 campista: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
 
-debug: CFLAGS = -Wall -std=c99 -g
+debug: CFLAGS = -Wall -std=c99 -g 
 debug: campista
 
 valtest: 

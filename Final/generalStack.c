@@ -1,12 +1,16 @@
 #include "generalStack.h"
 #include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 struct node {
   void *Items;
   struct node *next;
 };
+
+typedef struct {
+  int x, y;
+} Point;
 
 struct _stack {
   struct node *head;
@@ -40,15 +44,23 @@ int isEmpty(Stack *stack) { return stack->i == 0 && stack->head->next == NULL; }
 
 int itemExists(Stack *stack, void *item, int equal(void *, void *)) {
   struct node *node_ptr;
-  int i;
+  int i, n;
 
   node_ptr = stack->head;
+  n = stack->n;
+  i = stack->i - 1;
   while (node_ptr != NULL) {
-    for (i = stack->i - 1; i >= 0; i--) {
+    for (; i >= 0; i--) {
+      printf("(%d, %d) ", ((Point *)item)->x, ((Point *)item)->y);
+      printf("%d %d %d ", i, stack->itemSize, i * stack->itemSize);
+        printf("(%d, %d)\n", ((Point *)(node_ptr->Items+i*stack->itemSize))->x, ((Point *)(node_ptr->Items+i*stack->itemSize))->y);
+
       if (equal(item, node_ptr->Items+i*stack->itemSize))
         return 1;
     }
     node_ptr = node_ptr->next;
+    n = n / 2;
+    i = n - 1;
   }
   return 0;
 }
