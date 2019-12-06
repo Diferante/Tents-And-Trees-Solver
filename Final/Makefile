@@ -31,6 +31,13 @@ check:
 	find tests/ -maxdepth 1 -name "*.tents" -execdir echo Errors in {}: \; -execdir diff {} s/{} \;
 	@printf "done;\n"
 
+verify:
+	@printf "Starting verifys;\n"
+	find tests/ -maxdepth 1 -name "*.camp" -execdir printf "Verifying {}:  " \; -execdir sh -c './rangerMacOS {}; echo $$?' \;
+	./tests/rangerMacOS  tests/enunciado01.camp; echo $$?
+	@printf "done;\n"
+
+
 testmem:
 	reset
 	rm -f massifreport
