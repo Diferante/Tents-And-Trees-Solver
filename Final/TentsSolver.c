@@ -26,6 +26,8 @@ typedef struct {
 } Point;
 
 int PointsAreEqual(void *p1, void *p2) {
+  // printf("(%d,%d) -- (%d,%d) \n", ((Point *)p1)->x, ((Point *)p1)->y, ((Point
+  // *)p2)->x, ((Point *)p2)->y);
   return ((Point *)p1)->x == ((Point *)p2)->x &&
          ((Point *)p1)->y == ((Point *)p2)->y;
 }
@@ -526,10 +528,10 @@ int Guesser() {
   p.y = 0;
   while (1) {
     printMatriz(Matriz, L, C);
-    /*if(Matriz[0][6] == 'T'){
-        p.x++;
-        p.x--;
-    }*/
+    if (Matriz[0][6] == 'T') {
+      p.x++;
+      p.x--;
+    }
     for (; p.x < L; p.x++) {
       for (; p.y < C; p.y++) {
         if (Matriz[p.x][p.y] == '0') {
@@ -580,11 +582,11 @@ int Guesser() {
       }
       revert_snapshot();
       pop(jogadas, &p);
-      Matriz[p.x][p.y] = '0';
-      edit_matriz(p, '.');
       tendas_rest++;
       Lrests[p.x]++;
       Crests[p.y]++;
+      Matriz[p.x][p.y] = '0';
+      edit_matriz(p, '.');
       ChangePropagator(p.x, p.y, 0);
       // add_around(p.x, p.y, -1, Matriz, L, C);
       p.y++;

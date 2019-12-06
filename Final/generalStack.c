@@ -45,7 +45,7 @@ int itemExists(Stack *stack, void *item, int equal(void *, void *)) {
   node_ptr = stack->head;
   while (node_ptr != NULL) {
     for (i = stack->i - 1; i >= 0; i--) {
-      if (equal(item, node_ptr->Items+i))
+      if (equal(item, node_ptr->Items+i*stack->itemSize))
         return 1;
     }
     node_ptr = node_ptr->next;

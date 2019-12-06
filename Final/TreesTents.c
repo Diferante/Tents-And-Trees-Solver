@@ -275,7 +275,7 @@ char isT_alone_iter(int l0, int c0, char **Matriz, int L, int C) {
 /* Descrição: 1 se c for uma tenda, 0 se não.
  * */
 int isTent(char c) {
-  return c == '0' || c == 'T' || c == NEW_T_UNPAIRED || c == NEW_T_PAIRED;
+  return c == 't' || c == 'T' || c == NEW_T_UNPAIRED || c == NEW_T_PAIRED;
 }
 
 void repair_matriz(char **Matriz, int L, int C) {
