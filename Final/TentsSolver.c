@@ -412,7 +412,7 @@ int ChangePropagator(int x, int y, int line_column_test) {
       p.x--;
     }*/
     c = Matriz[p.x][p.y];
-    if (c == 'T' || c == 't' || c == NEW_T_UNPAIRED || c == NEW_T_PAIRED) {
+    if (isTent(c)) {
       if (AnalyseTent(p, isPairedTent(c), isNewTent(c)) == -1)
         return -1;
     } else if (c == '.') {
@@ -603,6 +603,25 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
     free(Lrests);
     return 0;
   }
+  res = 0;
+  for(i =0; i<L; i++){
+  	if(Lrests[i] < 0){
+  		res = -5;
+  		break;
+  	}
+  }
+  for(i =0; i<C; i++){
+  	if(Crests[i] < 0){
+  		res = -5;
+  		break;
+  	}
+  }
+  if(res == -5){
+  	fprintf(fp2, "%d %d %d\n\n", L, C, -1);
+    free(Crests);
+    free(Lrests);
+    return 0;
+  }
 
   Matriz = (char **)calloc(L, sizeof(char *));
   if (Matriz == NULL)
@@ -611,7 +630,7 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
   arvores = Fill_Matriz_easy(fpointer, Matriz, L, C);
 
   if (arvores < 0) {
-    fprintf(fp2, "%d %d %d\n\n", L, C, -2);
+    fprintf(fp2, "%d %d %d\n\n", L, C, -1);
     free(Crests);
     free(Lrests);
     _free_matriz(Matriz, L);
