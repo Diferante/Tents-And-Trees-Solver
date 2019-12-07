@@ -53,8 +53,6 @@ void LeituraDados(FILE* fp, FILE* fp2) {
     int L, C;
 
     while(1) {
-        if( fscanf(fp, " %d", &L) != 1) exit(0);
-        if( fscanf(fp, " %d", &C) != 1) exit(0);;
         Solver(fp, L, C, fp2);
 
         /* verificar se há mais problemas no ficheiro de entrada */
