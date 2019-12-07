@@ -50,10 +50,8 @@ int Ha_mais_problemas(FILE* fp) {
 
 /*Função que lê e analisa os dados do ficheiro de entrada*/
 void LeituraDados(FILE* fp, FILE* fp2) {
-    int L, C;
-
     while(1) {
-        Solver(fp, L, C, fp2);
+        Solver(fp, fp2);
 
         /* verificar se há mais problemas no ficheiro de entrada */
         if(!Ha_mais_problemas(fp))

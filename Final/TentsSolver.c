@@ -10,7 +10,7 @@ unsigned int L;          // Linhas
 unsigned int C;          // Colunas
 int *Lrests;             // Vetor de tendas por colocar em cada linha
 int *Crests;             // Vetor de tendas por colocar em cada coluna
-int tendas_rest;         // Tendas que por colocar
+int tendas_rest;         // Tendas por colocar
 int arvores;             // Árvores do mapa
 char epoca_alta;         // 1 se for época alta, 0 se não
 Stack *points_toAnalyse; // Pilha de pontos por analisar pelo ChangePropagator
@@ -618,9 +618,9 @@ int Prepare() {
 int Solver(FILE *fp_problema, FILE *fp_saida) {
   int i, j, res;
 
-  if (fscanf(fp, " %d", &L) != 1)
+  if (fscanf(fp_problema, " %d", &L) != 1)
     return -1;
-  if (fscanf(fp, " %d", &C) != 1)
+  if (fscanf(fp_problema, " %d", &C) != 1)
     return -1;
   Lrests = (int *)malloc(L * sizeof(int));
   if (Lrests == NULL)
