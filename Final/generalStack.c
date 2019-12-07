@@ -1,25 +1,43 @@
+/******************************************************************************
+ * 2019-2020
+ * Authors - Haohua Dong e Diogo Antunes
+ *
+ * DESCRIPTION
+ *  Header file for a general implementation of a single type stack through a
+ *  list of tables.
+ *
+ *  Implementation details:
+ *      This implementation can be used for single type stacks of any type.
+ *      The item's size must be specified at runtime for Initialization and
+ *      an item comparison function must be supplied for Search.
+ *      
+ *      When allocating more tables, the new table's size
+ *      grows linearly.
+ *      
+ *****************************************************************************/
+
 #include "generalStack.h"
-#include <limits.h>
-#include <stdio.h>
+
 #include <stdlib.h>
 #include <string.h>
+
 struct node {
-  void *Items;
-  struct node *next;
+  void *Items;              // Pointer to table of items
+  struct node *next;        // Pointer to next node.
 };
-
-/*typedef struct {
-  int x, y;
-} Point;*/
-
 struct _stack {
-  struct node *head;
-  unsigned int i; // First empty space
-  unsigned int n; // Current table size
-  unsigned int itemSize;
-  unsigned int initialSize;
+  struct node *head;        // List of tables
+  unsigned int i;           // First empty space
+  unsigned int n;           // Current table size
+  unsigned int itemSize;    // Size of each item to be stored.
+  unsigned int initialSize; // Initial size of the Stack.
 };
-
+/* Description: Allocates a Stack object and initializes it with a table of the
+ * specified size.
+ * Arguments: The intial size of the stack in items, and the
+ * size of each item in bytes.
+ * Return: Pointer to the created Stack.
+ * */
 Stack *initStack(unsigned int initial_size, unsigned int item_size) {
   Stack *newSt;
   newSt = (Stack *)malloc(sizeof(Stack));
@@ -41,9 +59,19 @@ Stack *initStack(unsigned int initial_size, unsigned int item_size) {
   newSt->i = 0;
   return newSt;
 };
-
-int isStackEmpty(Stack *stack) { return stack->i == 0 && stack->head->next == NULL; }
-
+/* Description: Returns 1 if the Stack is empty, 0 otherwise.
+ * */
+int isStackEmpty(Stack *stack) {
+  return stack->i == 0 && stack->head->next == NULL;
+}
+/* Description: Returns 1 if the item already exists in the Stack, 0 otherwise.
+ * Arguments:
+ *  Stack *     - Pointer to Stack
+ *  item        - Pointer to item to search for.
+ *  max_depth   - Maximum number of items to check. -1 for no limit.
+ *  equal       - Function used to compare the items, must be 0 for different
+ *                items.
+ * */
 int itemExists(Stack *stack, void *item, int max_depth,
                int equal(void *, void *)) {
   struct node *node_ptr;
@@ -51,14 +79,9 @@ int itemExists(Stack *stack, void *item, int max_depth,
 
   node_ptr = stack->head;
   n = stack->n;
-  i = stack->i - 1;
+  i = stack->i - 1; // i - 1 is the first occupied index
   while (node_ptr != NULL) {
     for (; i >= 0; i--) {
-      /*printf("(%d, %d) ", ((Point *)item)->x, ((Point *)item)->y);
-      printf("%d %d %d ", i, stack->itemSize, i * stack->itemSize);
-        printf("(%d, %d)\n", ((Point *)(node_ptr->Items+i*stack->itemSize))->x,
-      ((Point *)(node_ptr->Items+i*stack->itemSize))->y);
-        */
       if (max_depth == 0)
         return 0;
       if (max_depth > 0)
@@ -66,13 +89,15 @@ int itemExists(Stack *stack, void *item, int max_depth,
       if (equal(item, node_ptr->Items + i * stack->itemSize))
         return 1;
     }
+    // Move to next table
     node_ptr = node_ptr->next;
     n = n - stack->initialSize;
     i = n - 1;
   }
   return 0;
 }
-
+/* Description: Frees a Stack object and its contents.
+ * */
 void freeStack(Stack *stack) {
   struct node *old;
 
@@ -86,7 +111,10 @@ void freeStack(Stack *stack) {
   }
   free(stack);
 }
-
+/* Description: Copies an item to the top of the Stack. If the current table is
+ * full, allocates one more with a linearly increasing size.
+ * Arguments: Pointer to the Stack and pointer to the item to be copied.
+ * */
 void push(Stack *stack, void *item) {
   struct node *head, *new_node;
   unsigned int i, n, itemSize;
@@ -94,17 +122,19 @@ void push(Stack *stack, void *item) {
   if (stack == NULL)
     exit(0);
 
+  // Using local variables for readablity only, let the compiler micromanage
   head = stack->head;
   i = stack->i;
   n = stack->n;
   itemSize = stack->itemSize;
 
   if (i == n) {
-    // Table full, allocate more.
+    // Current table is full, allocate one more.
     n = n + stack->initialSize;
     // Check for overflow, since i == old n :
     if (i >= n)
       exit(0);
+
     new_node = (struct node *)malloc(sizeof(struct node));
     if (new_node == NULL)
       exit(0);
@@ -116,6 +146,7 @@ void push(Stack *stack, void *item) {
     new_node->next = head;
     head = new_node;
     i = 0;
+    // Update values since using local variables
     stack->head = head;
     stack->n = n;
   }
@@ -125,25 +156,43 @@ void push(Stack *stack, void *item) {
 
   stack->i = i;
 }
-
+/* Description: Copies an item from the top of the Stack and deletes it from the
+ * Stack. Only frees a table if a pop is called while it is empty. As a
+ * consequence, the Stack always keeps at least the starting table in memory,
+ * until it is freed.
+ * Arguments: Pointer to the Stack and pointer with the destination address.
+ * */
 void pop(Stack *stack, void *dest) {
-  struct node *old;
+  struct node *old, *head;
+  unsigned int i, n, itemSize;
 
-  if (stack == NULL)
+  if (stack == NULL || isStackEmpty(stack))
     exit(0);
-  if (stack->i == 0) {
-    if (stack->head->next == NULL)
-      exit(0);
 
-    stack->n -= stack->initialSize;
-    old = stack->head;
-    stack->head = stack->head->next;
+  // Using local variables for readablity only, let the compiler micromanage
+  head = stack->head;
+  i = stack->i;
+  n = stack->n;
+  itemSize = stack->itemSize;
+
+  if (i == 0) {
+    // Current table is empty, free it.
+    n = n - stack->initialSize;
+    i = n;
+    old = head;
+    // Since Stack is not empty, if current table is empty then head->next is
+    // the next table and is full
+    head = head->next;
     free(old->Items);
     free(old);
-    stack->i = stack->n;
+
+    // Update values since using local variables
+    stack->head = head;
+    stack->n = n;
   }
 
-  stack->i--;
-  memcpy(dest, stack->head->Items + (stack->i) * (stack->itemSize),
-         stack->itemSize);
+  i--;
+  memcpy(dest, head->Items + i * itemSize, itemSize);
+
+  stack->i = i;
 }

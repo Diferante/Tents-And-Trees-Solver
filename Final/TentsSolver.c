@@ -1,8 +1,17 @@
+/******************************************************************************
+ * 2019-2020 
+ * Authors - Haohua Dong e Diogo Antunes
+ *
+ * DESCRIPTION
+ *  Implementation a Trees and Tents solver.
+ *
+ *****************************************************************************/
+
+#include "TreesTents.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "TreesTents.h"
 #include "generalStack.h"
 
 char **Matriz;           // Matriz que representa o mapa

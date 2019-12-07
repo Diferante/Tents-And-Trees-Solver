@@ -3,10 +3,9 @@
 CC = gcc
 CFLAGS = -Wall -std=c99 -O3 
 TARGET = campista
-export TARGET
 
 # objects (make automatically makes x.o from x.c)
-OBJECTS = CAMPistA.o TentsSolver.o TreesTents.o generalStack.o
+OBJECTS = TentsSolver.o CAMPistA.o TreesTents.o generalStack.o
 
 
 campista: $(OBJECTS)

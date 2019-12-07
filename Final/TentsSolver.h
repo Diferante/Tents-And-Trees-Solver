@@ -1,5 +1,15 @@
+/******************************************************************************
+ * 2019-2020 
+ * Authors - Haohua Dong e Diogo Antunes
+ *
+ * DESCRIPTION
+ *  Header file for a Trees and Tents solver.
+ *
+ *****************************************************************************/
 #ifndef TENTSSOLVER_H_INCLUDED
 #define TENTSSOLVER_H_INCLUDED
+
+#include <stdio.h>
 
 /* Descrição: Lê de um ficheiro e resolve um problema de Tents And Trees com
  * procura de solução e escreve o resultado num ficheiro de saida. 
