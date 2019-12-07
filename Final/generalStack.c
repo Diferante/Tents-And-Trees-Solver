@@ -8,9 +8,9 @@ struct node {
   struct node *next;
 };
 
-typedef struct {
+/*typedef struct {
   int x, y;
-} Point;
+} Point;*/
 
 struct _stack {
   struct node *head;
@@ -42,9 +42,10 @@ Stack *initStack(unsigned int initial_size, unsigned int item_size) {
   return newSt;
 };
 
-int isEmpty(Stack *stack) { return stack->i == 0 && stack->head->next == NULL; }
+int isStackEmpty(Stack *stack) { return stack->i == 0 && stack->head->next == NULL; }
 
-int itemExists(Stack *stack, void *item, int max_depth, int equal(void *, void *)) {
+int itemExists(Stack *stack, void *item, int max_depth,
+               int equal(void *, void *)) {
   struct node *node_ptr;
   int i, n;
 
@@ -58,8 +59,10 @@ int itemExists(Stack *stack, void *item, int max_depth, int equal(void *, void *
         printf("(%d, %d)\n", ((Point *)(node_ptr->Items+i*stack->itemSize))->x,
       ((Point *)(node_ptr->Items+i*stack->itemSize))->y);
         */
-        if(max_depth == 0) return 0;
-        if(max_depth > 0) max_depth--;
+      if (max_depth == 0)
+        return 0;
+      if (max_depth > 0)
+        max_depth--;
       if (equal(item, node_ptr->Items + i * stack->itemSize))
         return 1;
     }
@@ -97,6 +100,7 @@ void push(Stack *stack, void *item) {
   itemSize = stack->itemSize;
 
   if (i == n) {
+    // Table full, allocate more.
     n = n + stack->initialSize;
     // Check for overflow, since i == old n :
     if (i >= n)

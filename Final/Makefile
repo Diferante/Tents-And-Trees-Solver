@@ -6,7 +6,7 @@ TARGET = campista
 export TARGET
 
 # objects (make automatically makes x.o from x.c)
-OBJECTS = CAMPistA.o TentsSolver.o TreesTents.o generalStack.o
+OBJECTS = CAMPistA.o TentsSolver.o TreesTents.o generalStack.o generalFifo.o
 
 
 campista: $(OBJECTS)

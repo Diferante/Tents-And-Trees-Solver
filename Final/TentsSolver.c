@@ -4,6 +4,7 @@
 
 #include "TreesTents.h"
 #include "generalStack.h"
+#include "generalFifo.h"
 
 char **Matriz;
 unsigned int L;
@@ -13,7 +14,7 @@ int *Crests;
 int tendas_rest;
 int arvores;
 char estacao_alta;
-Stack *points_toAnalyse;
+Fifo *points_toAnalyse;
 // Variaveis para backtracking: ----
 int record_changes;
 Stack *b_chars;       // Os char alterados.
@@ -46,8 +47,8 @@ void regista_alteracao(Point point, char old_value) {
 void create_snapshot() {
   push(b_n, &n_since_snapshot);
   n_since_snapshot = 0;  
-  printf("Save\n");
-  printMatriz(Matriz, L, C);
+  //printf("Save\n");
+  //printMatriz(Matriz, L, C);
 }
 /* Descrição: Reverte as alterações desde o último snapshot;
  * */
@@ -65,8 +66,8 @@ void revert_snapshot() {
     Matriz[p.x][p.y] = old_value;
   }
   pop(b_n, &n_since_snapshot);
-  printf("Revert to\n");
-  printMatriz(Matriz, L, C);
+  //printf("Revert to\n");
+  //printMatriz(Matriz, L, C);
 }
 /* Descrição: Altera a matriz e opcionalmente guarda a alteração
  * */
@@ -88,7 +89,7 @@ int AnalyseTent(Point tent, int isPaired, int isNew) {
           (p.x != tent.x || p.y != tent.y)) {
         if (isNew && Matriz[p.x][p.y] == '0') {
           edit_matriz(p, '.');
-          push(points_toAnalyse, &p);
+          queue(points_toAnalyse, &p);
         } else if (isNew && isTent(Matriz[p.x][p.y])) {
           return -1;
         } else if (p.x == tent.x ||
@@ -97,7 +98,7 @@ int AnalyseTent(Point tent, int isPaired, int isNew) {
             arvores_sem_par++;
             a = p;
             if (isPaired && estacao_alta)
-              push(points_toAnalyse, &a);
+              queue(points_toAnalyse, &a);
           }
         }
       }
@@ -114,7 +115,7 @@ int AnalyseTent(Point tent, int isPaired, int isNew) {
     p.y = tent.y + 2 * (a.y - tent.y);
     if (p.x >= 0 && p.x < L && p.y >= 0 && p.y < C) {
       if (Matriz[p.x][p.y] == '0' || Matriz[p.x][p.y] == 'T') {
-        push(points_toAnalyse, &p);
+        queue(points_toAnalyse, &p);
       }
     }
   }
@@ -130,7 +131,7 @@ int AnalyseTent(Point tent, int isPaired, int isNew) {
       for (p.y = 0; p.y < C; p.y++) {
         if (Matriz[p.x][p.y] == '0') {
           edit_matriz(p, '.');
-          push(points_toAnalyse, &p);
+          queue(points_toAnalyse, &p);
         }
       }
     }
@@ -140,7 +141,7 @@ int AnalyseTent(Point tent, int isPaired, int isNew) {
       for (p.x = 0; p.x < L; p.x++) {
         if (Matriz[p.x][p.y] == '0') {
           edit_matriz(p, '.');
-          push(points_toAnalyse, &p);
+          queue(points_toAnalyse, &p);
         }
       }
     }
@@ -209,7 +210,7 @@ int AnalyseTree(Point tree) {
     } else {
       edit_matriz(tent, 't');
     }
-    push(points_toAnalyse, &tent);
+    queue(points_toAnalyse, &tent);
   }
   return 0;
 }
@@ -249,7 +250,7 @@ int AnalyseLinhaColunaLimits(Point ponto) {
               Crests[p.y]--;
               Lrests[p.x]--;
               tendas_rest--;
-              push(points_toAnalyse, &p);
+              queue(points_toAnalyse, &p);
             }
           }
           // nada se conclui em blocos pares
@@ -263,7 +264,7 @@ int AnalyseLinhaColunaLimits(Point ponto) {
           Crests[p.y]--;
           Lrests[p.x]--;
           tendas_rest--;
-          push(points_toAnalyse, &p);
+          queue(points_toAnalyse, &p);
         }
       }
       // nada se conclui em blocos pares
@@ -303,7 +304,7 @@ int AnalyseLinhaColunaLimits(Point ponto) {
               Lrests[p.x]--;
               Crests[p.y]--;
               tendas_rest--;
-              push(points_toAnalyse, &p);
+              queue(points_toAnalyse, &p);
             }
           }
           // nada se conclui em blocos pares
@@ -317,7 +318,7 @@ int AnalyseLinhaColunaLimits(Point ponto) {
           Lrests[p.x]--;
           Crests[p.y]--;
           tendas_rest--;
-          push(points_toAnalyse, &p);
+          queue(points_toAnalyse, &p);
         }
       }
     }
@@ -335,14 +336,14 @@ int AnalysePoint(Point ponto) {
       if (Matriz[ponto.x - 1][ponto.y] == 'A') {
         p.x = ponto.x - 1;
         p.y = ponto.y;
-        push(points_toAnalyse, &p);
+        queue(points_toAnalyse, &p);
       }
     }
     if (ponto.x < L - 1) {
       if (Matriz[ponto.x + 1][ponto.y] == 'A') {
         p.x = ponto.x + 1;
         p.y = ponto.y;
-        push(points_toAnalyse, &p);
+        queue(points_toAnalyse, &p);
       }
     }
 
@@ -350,14 +351,14 @@ int AnalysePoint(Point ponto) {
       if (Matriz[ponto.x][ponto.y - 1] == 'A') {
         p.x = ponto.x;
         p.y = ponto.y - 1;
-        push(points_toAnalyse, &p);
+        queue(points_toAnalyse, &p);
       }
     }
     if (ponto.y < C - 1) {
       if (Matriz[ponto.x][ponto.y + 1] == 'A') {
         p.x = ponto.x;
         p.y = ponto.y + 1;
-        push(points_toAnalyse, &p);
+        queue(points_toAnalyse, &p);
       }
     }
   }
@@ -384,7 +385,7 @@ void AnalyseOpen(Point open) {
       return;
   }
   edit_matriz(p, '.');
-  push(points_toAnalyse, &p);
+  queue(points_toAnalyse, &p);
 }
 
 /* Descrição: Avalia o ponto fornecido e altera o resto do mapa
@@ -403,10 +404,10 @@ int ChangePropagator(int x, int y, int line_column_test) {
   if (line_column_test) {
     AnalyseLinhaColunaLimits(p);
   } else {
-    push(points_toAnalyse, &p);
+    queue(points_toAnalyse, &p);
   }
-  while (!isEmpty(points_toAnalyse)) {
-    pop(points_toAnalyse, &p);
+  while (!isFifoEmpty(points_toAnalyse)) {
+    dequeue(points_toAnalyse, &p);
     // printf("%d, %d\n", p.x, p.y);
     // printf("rests %d\n", tendas_rest);
     // printMatriz(Matriz, L, C);
@@ -469,7 +470,7 @@ int Guesser() {
       p.y = 0;
     }
     if (p.x == L) {
-      if (isEmpty(jogadas)) {
+      if (isStackEmpty(jogadas)) {
         freeStack(jogadas);
         freeStack(b_chars);
         freeStack(b_points);
@@ -631,7 +632,7 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
 
   estacao_alta = tendas_rest == arvores;
 
-  points_toAnalyse = initStack(8, sizeof(Point));
+  points_toAnalyse = initFifo(8, sizeof(Point));
   /*cria opens na matriz e verifica opens obvios */
   res = teste();
   if (res != 0) {
@@ -649,7 +650,7 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
     free(Lrests);
     free(Crests);
     _free_matriz(Matriz, L);
-    freeStack(points_toAnalyse);
+    freeFifo(points_toAnalyse);
     return 0;
   }
 
@@ -668,6 +669,6 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
   free(Lrests);
   free(Crests);
   _free_matriz(Matriz, L);
-  freeStack(points_toAnalyse);
+  freeFifo(points_toAnalyse);
   return 0;
 }
