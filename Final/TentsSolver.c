@@ -3,8 +3,8 @@
 #include <string.h>
 
 #include "TreesTents.h"
-#include "generalStack.h"
 #include "generalFifo.h"
+#include "generalStack.h"
 
 char **Matriz;
 unsigned int L;
@@ -46,9 +46,9 @@ void regista_alteracao(Point point, char old_value) {
  * */
 void create_snapshot() {
   push(b_n, &n_since_snapshot);
-  n_since_snapshot = 0;  
-  //printf("Save\n");
-  //printMatriz(Matriz, L, C);
+  n_since_snapshot = 0;
+  // printf("Save\n");
+  // printMatriz(Matriz, L, C);
 }
 /* Descrição: Reverte as alterações desde o último snapshot;
  * */
@@ -66,8 +66,8 @@ void revert_snapshot() {
     Matriz[p.x][p.y] = old_value;
   }
   pop(b_n, &n_since_snapshot);
-  //printf("Revert to\n");
-  //printMatriz(Matriz, L, C);
+  // printf("Revert to\n");
+  // printMatriz(Matriz, L, C);
 }
 /* Descrição: Altera a matriz e opcionalmente guarda a alteração
  * */
@@ -104,6 +104,8 @@ int AnalyseTent(Point tent, int isPaired, int isNew) {
       }
     }
   }
+  if (!isPaired && arvores_sem_par == 0)
+    return -1;
   // Se só há uma árvore sem par adj esta tem de ser a par
   if (!isPaired && arvores_sem_par == 1) {
     isPaired = 1;
@@ -125,6 +127,8 @@ int AnalyseTent(Point tent, int isPaired, int isNew) {
     else
       edit_matriz(tent, 'T');
     // Verificar limites linha e coluna
+    if (Lrests[tent.x] < 0)
+      return -1;
     if (Lrests[tent.x] == 0) {
       p = tent;
       // Limpa opens da linha
@@ -135,6 +139,8 @@ int AnalyseTent(Point tent, int isPaired, int isNew) {
         }
       }
     }
+    if (Crests[tent.y] < 0)
+      return -1;
     if (Crests[tent.y] == 0) {
       p = tent;
       // Limpa opens da coluna
@@ -392,21 +398,24 @@ void AnalyseOpen(Point open) {
  * consoante for possível com a nova informação.
  * Argumentos: O ponto (x, y) e uma flag que indica se deve ser feito
  * o teste correspondente ao char na Matriz ou verificar se a linha ou
- * coluna do ponto são fáceis - número de opens igual a tendas restantes.
+ * coluna do ponto são fáceis: espaços livres igual a tendas restantes.
  * Retorno: Devolve -1 se detetar que  problema é impossível, 0 caso contrário.
  * */
 int ChangePropagator(int x, int y, int line_column_test) {
   Point p;
   char c;
+  int res = 0;
+  points_toAnalyse = initFifo(8, sizeof(Point));
   p.x = x;
   p.y = y;
   // printf("\nnew Prop\n");
   if (line_column_test) {
-    AnalyseLinhaColunaLimits(p);
+    if (AnalyseLinhaColunaLimits(p) == -1)
+      res = -1;
   } else {
     queue(points_toAnalyse, &p);
   }
-  while (!isFifoEmpty(points_toAnalyse)) {
+  while (res != -1 && !isFifoEmpty(points_toAnalyse)) {
     dequeue(points_toAnalyse, &p);
     // printf("%d, %d\n", p.x, p.y);
     // printf("rests %d\n", tendas_rest);
@@ -419,18 +428,19 @@ int ChangePropagator(int x, int y, int line_column_test) {
     c = Matriz[p.x][p.y];
     if (isTent(c)) {
       if (AnalyseTent(p, isPairedTent(c), isNewTent(c)) == -1)
-        return -1;
+        res = -1;
     } else if (c == '.') {
       if (AnalysePoint(p) == -1)
-        return -1;
+        res = -1;
     } else if (c == 'A' && estacao_alta) {
       if (AnalyseTree(p) == -1)
-        return -1;
+        res = -1;
     } else if (c == '0') {
       AnalyseOpen(p);
     }
   }
-  return 0;
+  freeFifo(points_toAnalyse);
+  return res;
 }
 
 int Guesser() {
@@ -485,31 +495,32 @@ int Guesser() {
       Matriz[p.x][p.y] = '0';
       edit_matriz(p, '.');
       if (ChangePropagator(p.x, p.y, 0) == -1) {
-        p.x = L - 1;
-        p.y = C - 1;
+        p.x = L;
+        continue;
       }
       // add_around(p.x, p.y, -1, Matriz, L, C);
       p.y++;
     }
     if (tendas_rest == 0) {
-      for (p.x = 0; p.x < L; p.x++) {
+      /*for (p.x = 0; p.x < L; p.x++) {
         for (p.y = 0; p.y < C; p.y++) {
-          if (Matriz[p.x][p.y] == 'T' && isT_alone_iter(p.x, p.y, Matriz, L, C))
+          if (Matriz[p.x][p.y] == 'T' && printf("got one\n" ) != 55 && isT_alone_iter(p.x, p.y, Matriz, L, C))
             break;
         }
         if (p.y != C)
           break;
       }
-      repair_matriz(Matriz, L, C);
-      if (p.x == L) {
+      repair_matriz(Matriz, L, C);*/
+
+      //if (p.x == L) {
         freeStack(jogadas);
         freeStack(b_chars);
         freeStack(b_points);
         freeStack(b_n);
         beautify_matriz(Matriz, L, C);
         return 1; // Win;
-      }
-      p.x = L;
+      //}
+      //p.x = L;
     }
   }
 }
@@ -600,7 +611,7 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
   }
 
   tendas_rest = Fill_Hints_checkSums(fpointer, L, C, Lrests, Crests);
-  
+
   if (tendas_rest < 0) {
     fprintf(fp2, "%d %d %d\n\n", L, C, tendas_rest);
     free(Crests);
@@ -631,8 +642,6 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
   }
 
   estacao_alta = tendas_rest == arvores;
-
-  points_toAnalyse = initFifo(8, sizeof(Point));
   /*cria opens na matriz e verifica opens obvios */
   res = teste();
   if (res != 0) {
@@ -650,7 +659,6 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
     free(Lrests);
     free(Crests);
     _free_matriz(Matriz, L);
-    freeFifo(points_toAnalyse);
     return 0;
   }
 
@@ -669,6 +677,5 @@ int Solver(FILE *fpointer, unsigned int l, unsigned int c, FILE *fp2) {
   free(Lrests);
   free(Crests);
   _free_matriz(Matriz, L);
-  freeFifo(points_toAnalyse);
   return 0;
 }
