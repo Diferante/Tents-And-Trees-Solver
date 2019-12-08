@@ -22,13 +22,15 @@
  *		  isNewTent
  *		  sem_tendas_adj
  *
- *	Código utilizado durante processamento:
- *		  Tenda sem par já analisada	T
- *		  Tenda com par já analisada	t
- *		  Tenda nova sem par 			NEW_T_UNPAIRED
- *		  Tenda nova com par 			NEW_T_PAIRED
- *		  Árvore sem par 				A
- *		  Árvore com par 				a
+ *  Código utilizado durante processamento:
+ *      Tenda sem par já analisada  T
+ *      Tenda com par já analisada  t
+ *      Tenda nova sem par          NEW_T_UNPAIRED
+ *      Tenda nova com par          NEW_T_PAIRED
+ *      Árvore sem par              A
+ *      Árvore com par              a
+ *      Ponto                       .
+ *      Tenda ou Ponto = Open       0   
  *
  *	Dependências:
  *    stdio.h
