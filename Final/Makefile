@@ -33,7 +33,7 @@ check:
 	@printf "done;\n"
 
 verify:
-	@printf "Starting verifys;\n"
+	@printf "Starting verifications;\n"
 	find tests/ -maxdepth 1 -name "*.camp" -execdir printf "Verifying {}:\t\t\t" \; -execdir sh -c './ranger {}; echo $$?' \;
 	@printf "done;\n"
 

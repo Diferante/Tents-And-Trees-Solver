@@ -22,6 +22,10 @@
  *       push
  *		 pop
  *
+ *	Dependencies:
+ *    stdlib.h
+ *	  string.h
+ *
  *****************************************************************************/
 
 #ifndef GENERALSTACK_H_INCLUDED
@@ -31,7 +35,7 @@ typedef struct _stack Stack;
 
 /* Description: Allocates a Stack object and initializes it with the
  * specified size.
- * Arguments: The intial size of the stack in items, and the
+ * Arguments: The initial size of the stack in items, and the
  * size of each item in bytes.
  * Return: Pointer to the created Stack.
  * */

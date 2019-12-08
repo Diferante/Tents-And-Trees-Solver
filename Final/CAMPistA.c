@@ -5,7 +5,7 @@
  * DESCRIÇÃO
  *  Programa que utiliza o TentsSolver para resolver um conjunto de problemas
  *  do jogo Trees and Tents fornecidos num ficheiro .camp e cria um ficheiro
- *  .tents com os resultados. O programa não devolve nada para o terminal.
+ *  .tents com os resultados. O programa não escreve nada no terminal.
  *
  *  Utilização:
  *      <nome_do_programa> nome_do_ficheiro_com_problema.camp
@@ -61,8 +61,9 @@ int Ha_mais_problemas(FILE *fp) {
       }
     }
     if (nbytes == b) {
+      // Buffer processado, ler mais um bloco
       nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
-      if (nbytes == 0)
+      if (nbytes == 0) // Fim do ficheiro
         return 0;
       b = -1;
       continue;
@@ -72,7 +73,7 @@ int Ha_mais_problemas(FILE *fp) {
 
 /* Descrição: Chama Solver de TentsSolver.h para resolver cada problema
  * individual no ficheiro de entrada e escrever o seu resultado no ficheiro de
- * saida.
+ * saída.
  * Argumentos: Apontadores para o ficheiro de entrada e o de saída.
  * */
 void Resolucao(FILE *fp_in, FILE *fp_out) {
@@ -84,9 +85,9 @@ void Resolucao(FILE *fp_in, FILE *fp_out) {
       break;
   }
 }
-/* Descrição: Lê um ficheiro .camp recebido como argumento com um problema do
- * jogo Tents and Trees, resolve-o com o Solver de TentsSolver.h e cria um
- * ficheiro .tents para guardar o resultado.
+/* Descrição: Lê um ficheiro .camp recebido como argumento com problemas do
+ * jogo Trees and Tents, resolve-os com o Solver de TentsSolver.h e cria um
+ * ficheiro .tents para guardar os resultados.
  * */
 int main(int argc, char *argv[]) {
   char *p;
@@ -96,12 +97,11 @@ int main(int argc, char *argv[]) {
   if (argc < 2)
     exit(0);
 
-  // verificar se o ficheiro de entrada tem extensão '.camp' 
+  // verificar se o ficheiro de entrada tem extensão '.camp'
   p = strrchr(argv[1], '.');
   if (p == NULL || strcmp(p, ".camp"))
     exit(0);
 
-  /*Abertura do ficheiro de entrada*/
   fp_in = AbreFicheiro(argv[1], "rb");
 
   // Ao passar de .camp para .tents é preciso mais 1 char

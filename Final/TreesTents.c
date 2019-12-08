@@ -3,8 +3,8 @@
  * Autores - Haohua Dong e Diogo Antunes
  *
  * DESCRIÇÃO
- *  Implementação de funções de auxílio das funções em TentsSolver na resolução
- *  de problemas do jogo Tents and Trees.
+ *  Implementação de funções de auxílio das funções em TentsSolver.h na resolução
+ *  de problemas do jogo Trees and Tents.
  *
  *  Detalhes de implementação:
  *      A leitura dos vetores de tendas por linha e coluna, em
@@ -151,7 +151,7 @@ void beautify_matriz(char **Matriz, int L, int C) {
 void check_adj_for_opens(int x, int y, char **Matriz, int L, int C, int *Lrests,
                          int *Crests) {
   // Em cada posição adjacente à árvore, coloca '0' se for um ponto, se não
-  // existerem tendas adjacentes e se puderem existir tendas nas suas linha e
+  // existirem tendas adjacentes e se puderem existir tendas nas suas linha e
   // coluna.
   if (Crests[y] > 0) {
     if (x > 0) {

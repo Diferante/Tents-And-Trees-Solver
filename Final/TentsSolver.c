@@ -1,4 +1,4 @@
-/******************************************************************************
+6/******************************************************************************
  * 2019-2020
  * Autores - Haohua Dong e Diogo Antunes
  *
@@ -8,14 +8,13 @@
  *
  *
  *  Detalhes de implementação:
- *		A entrada do problema e a saída do resultado são realizadas
- *		através de ficheiros. Para encontrar uma solução são utilizados
- *		um verificador das regras de jogo, ChangePropagator, e um
- *		algoritmo de procura de solução, Guesser. Tenta-se primeiro
- *		determinar a solução diretamente com o verificador, utilizando a
- *		procura apenas quando o verificador é inconclusivo. Na procura
- *		são registadas as alterações entre cada decisão de modo a
- *		permitir o backtracking para estados anteriores.
+ *		Para encontrar uma solução são utilizados um verificador das
+ *		regras de jogo, ChangePropagator, e um algoritmo de procura de
+ *		solução, Guesser. Tenta-se primeiro determinar a solução
+ *		diretamente com o verificador, utilizando a procura apenas
+ *		quando o verificador é inconclusivo. Na procura são registadas
+ *		as alterações entre cada decisão de modo a permitir o
+ *		backtracking para estados anteriores.
  *		NEW_T_PAIRED e NEW_T_UNPAIRED são macros de TentsTrees.h.
  *
  * 	Código utilizado durante processamento:
@@ -35,17 +34,17 @@
 #include <stdlib.h>
 
 char **Matriz;           // Matriz que representa o mapa
-unsigned int L;          // Linhas
-unsigned int C;          // Colunas
+unsigned int L;          // Linhas da Matriz
+unsigned int C;          // Colunas da Matriz
 int *Lrests;             // Vetor de tendas por colocar em cada linha
 int *Crests;             // Vetor de tendas por colocar em cada coluna
 int tendas_rest;         // Tendas por colocar
 int arvores;             // Árvores do mapa
 char epoca_alta;         // 1 se for época alta, 0 se não
 Stack *points_toAnalyse; // Pilha de pontos por analisar pelo ChangePropagator
-// Variaveis para backtracking: ----
-int record_changes;   // 1 se deve resgistar alterações a Matriz, 0 se não
-Stack *b_chars;       // Os char alterados.
+// Variáveis para backtracking: ----
+int record_changes;   // 1 se deve registar alterações à Matriz, 0 se não
+Stack *b_chars;       // Os char alterados
 Stack *b_points;      // As coordenadas dos char alterados
 Stack *b_n;           // O nmr de char's alterados após cada snapshot
 int n_since_snapshot; // O nmr de char's alterados após o último snapshot
@@ -55,29 +54,33 @@ typedef struct {
   int x, y;
 } Point;
 
-/* Descrição: Indica se os dois objetos Point nas posições apontadas são iguais
+/* Descrição: 1 se os dois objetos Point nas posições apontadas são iguais, 0 se
+ * não.
  * */
 int PointsAreEqual(void *p1, void *p2) {
   return ((Point *)p1)->x == ((Point *)p2)->x &&
          ((Point *)p1)->y == ((Point *)p2)->y;
 }
+
 /* Descrição: Regista a alterção de um ponto para permitir backtracking.
  * */
 void regista_alteracao(Point point, char old_char) {
   // Se o ponto já foi alterado desde o último snapshot já está registado como
-  // alterado
+  // alterado e não interessa o valor intermédio
   if (!itemExists(b_points, &point, n_since_snapshot, PointsAreEqual)) {
     push(b_points, &point);
     push(b_chars, &old_char);
     n_since_snapshot++;
   }
 }
+
 /* Descrição: Cria um snapshot para onde é possível fazer backtrack.
  * */
 void create_snapshot() {
   push(b_n, &n_since_snapshot);
   n_since_snapshot = 0;
 }
+
 /* Descrição: Reverte as alterações desde o último snapshot;
  * */
 void revert_snapshot() {
@@ -94,9 +97,11 @@ void revert_snapshot() {
     }
     Matriz[p.x][p.y] = old_value;
   }
+  // Obter número de alterações desde o snapshot anterior a este
   pop(b_n, &n_since_snapshot);
 }
-/* Descrição: Altera a matriz e opcionalmente guarda a alteração
+
+/* Descrição: Altera a matriz e se record_changes não for 0 guarda a alteração
  * */
 void edit_matriz(Point point, char new_char) {
   if (record_changes) {
@@ -107,40 +112,47 @@ void edit_matriz(Point point, char new_char) {
 
 /* Funções Analyse... utilizadas pelo ChangePropagator * * * * * * * * * * * *
  */
+
 /* Descrição: Compara os espaços livres com o número de tendas restantes na
- * linha e coluna do Point fornecido. Se record_changes for 1 faz os registos
- * para backtracking.
+ * linha e coluna do Point fornecido. Se record_changes não for 0 faz os
+ * registos para backtracking.
  * */
 int AnalyseLinhaColunaLimits(Point ponto) {
   Point p;
   int espacos_livres, comprimento, i;
+
+  // Se há tendas por colocar na linha
   if (Lrests[ponto.x] > 0) {
-    // Vê espacos livres e abertos da linha
+    // Conta espaços livres da linha
     p.x = ponto.x;
-    comprimento = 0;
+    comprimento = 0; // Comprimento de um bloco contíguo de opens na matriz
     espacos_livres = 0;
     for (p.y = 0; p.y < C; p.y++) {
       if (Matriz[p.x][p.y] == '0') {
         comprimento++;
       } else if (comprimento != 0) {
+        // Blocos de n par opens podem conter n/2 tendas, e blocos de n ímpar
+        // opens podem conter n/2 +1 tendas
         espacos_livres += comprimento / 2 + comprimento % 2;
         comprimento = 0;
       }
     }
-    // se o ultimo for open ainda falta adicionar o ultimo bloco
+    // se o último char for open ainda falta adicionar o último bloco
     if (comprimento != 0) {
       espacos_livres += comprimento / 2 + comprimento % 2;
     }
     if (espacos_livres < Lrests[p.x])
       return -1;
     if (espacos_livres == Lrests[p.x]) {
+      // Há uma tenda para cada espaço livre
       comprimento = 0;
       for (i = 0; i < C; i++) {
         if (Matriz[p.x][i] == '0')
           comprimento++;
         else {
           if (comprimento % 2 == 1) {
-            // em blocos impares as tendas são as pontas e dois em dois
+            // em blocos ímpares as tendas são as pontas e dois em dois no seu
+            // interior. Ex: se 0000000 tem 4 tendas têm de ser T0T0T0T
             for (p.y = i - 1; i - p.y <= comprimento; p.y -= 2) {
               edit_matriz(p, NEW_T_UNPAIRED);
               Crests[p.y]--;
@@ -149,11 +161,12 @@ int AnalyseLinhaColunaLimits(Point ponto) {
               push(points_toAnalyse, &p);
             }
           }
-          // nada se conclui em blocos pares
+          // nada se conclui em blocos pares sobre a posição das tendas no seu
+          // interior
           comprimento = 0;
         }
       }
-      // se o ultimo for de um bloco impar ainda falta alterar o bloco
+      // se o ultimo char for de um bloco ímpar ainda falta alterar o bloco
       if (comprimento % 2 == 1) {
         for (p.y = i - 1; i - p.y <= comprimento; p.y -= 2) {
           edit_matriz(p, NEW_T_UNPAIRED);
@@ -163,12 +176,11 @@ int AnalyseLinhaColunaLimits(Point ponto) {
           push(points_toAnalyse, &p);
         }
       }
-      // nada se conclui em blocos pares
-      comprimento = 0;
     }
   }
+  // Se há tendas por colocar na coluna
   if (Crests[ponto.y] > 0) {
-    // Vê espacos livres e abertos da coluna
+    // Conta espaços livres da coluna
     p.y = ponto.y;
     comprimento = 0;
     espacos_livres = 0;
@@ -176,11 +188,13 @@ int AnalyseLinhaColunaLimits(Point ponto) {
       if (Matriz[p.x][p.y] == '0') {
         comprimento++;
       } else if (comprimento != 0) {
+        // Blocos de n par opens podem conter n/2 tendas, e blocos de n ímpar
+        // opens podem conter n/2 +1 tendas
         espacos_livres += comprimento / 2 + comprimento % 2;
         comprimento = 0;
       }
     }
-    // se o ultimo for open ainda falta adicionar o ultimo bloco
+    // se o último char for open ainda falta adicionar o último bloco
     if (comprimento != 0) {
       espacos_livres += comprimento / 2 + comprimento % 2;
     }
@@ -188,13 +202,15 @@ int AnalyseLinhaColunaLimits(Point ponto) {
     if (espacos_livres < Crests[p.y])
       return -1;
     if (espacos_livres == Crests[p.y]) {
+      // Há uma tenda para cada espaço livre
       comprimento = 0;
       for (i = 0; i < L; i++) {
         if (Matriz[i][p.y] == '0') {
           comprimento++;
         } else {
           if (comprimento % 2 == 1) {
-            // em blocos impares as tendas são as pontas e dois em dois
+            // em blocos ímpares as tendas são as pontas e dois em dois no seu
+            // interior. Ex: se 0000000 tem 4 tendas têm de ser T0T0T0T
             for (p.x = i - 1; i - p.x <= comprimento; p.x -= 2) {
               edit_matriz(p, NEW_T_UNPAIRED);
               Lrests[p.x]--;
@@ -203,11 +219,12 @@ int AnalyseLinhaColunaLimits(Point ponto) {
               push(points_toAnalyse, &p);
             }
           }
-          // nada se conclui em blocos pares
+          // nada se conclui em blocos pares sobre a posição das tendas no seu
+          // interior
           comprimento = 0;
         }
       }
-      // se o ultimo for de um bloco impar ainda falta alterar o bloco
+      // se o ultimo char for de um bloco ímpar ainda falta alterar o bloco
       if (comprimento % 2 == 1) {
         for (p.x = i - 1; i - p.x <= comprimento; p.x -= 2) {
           edit_matriz(p, NEW_T_UNPAIRED);
@@ -221,10 +238,11 @@ int AnalyseLinhaColunaLimits(Point ponto) {
   }
   return 0;
 }
+
 /* Descrição das seguintes funções Analyse... :
  * Analisam um objeto no mapa (tenda, árvore, ponto ou open) e os pontos
- * possívelmente afetados por ele ou pela sua colocação, alteram o que for
- * possível determinar como consquência inevitável das regras e fazem push dos
+ * possivelmente afetados por ele ou pela sua colocação, alteram o que for
+ * possível determinar como consequência inevitável das regras e fazem push dos
  * pontos possivelmente afetados para análise posterior por ChangePropagator. Se
  * record_changes for 1 fazem os registos para backtracking.
  * Retorno: -1 se encontrarem uma violação das regras de jogo, 0 caso contrário.
@@ -455,7 +473,7 @@ int AnalyseOpen(Point open) {
  */
 
 /* Descrição: Avalia o ponto fornecido e altera o que for possível determinar
- * como consquência necessária das regras. Analisa os pontos afetados para
+ * como consequência necessária das regras. Analisa os pontos afetados para
  * avaliar se consegue tirar conclusões a partir das alterações que fez. Se
  * record_changes for 1 faz os registos para backtracking.
  * Argumentos: O ponto (x, y) a analisar e uma flag que indica se deve ser feito
@@ -497,7 +515,7 @@ int ChangePropagator(int x, int y, int line_column_test) {
   return res;
 }
 /* Descrição: Encontra uma solução para um problema em que o ChangePropagator
- * não consiga tirar conclusões inevitáveis. Faz uma procura depth first de
+ * não consiga tirar conclusões inevitáveis. Faz uma procura depth-first de
  * entre os vários estados do mapa em que cada open pode ou não ter tenda.
  * Utiliza o Change Propagator para encontrar o estado resultante de cada
  * decisão tomada e as funções de backtracking para voltar aos estados
@@ -568,7 +586,7 @@ int Guesser() {
       }
       p.y++;
     }
-    // Se o progama chega aqui é porque ChangePropagator não encontrou violação
+    // Se o programa chega aqui é porque ChangePropagator não encontrou violação
     // das regras
     if (tendas_rest == 0) {
       freeStack(jogadas);
@@ -583,7 +601,7 @@ int Guesser() {
 
 /* Descrição: Marca os pontos em que é possível existir tenda, chamados opens.
  * Utiliza o ChangePropagator para tirar conclusões inevitáveis sobre o mapa.
- * Retorno: 0 se não checgou a nenhuma conclusão, 1 se encontrou solução ou -1
+ * Retorno: 0 se não chegou a nenhuma conclusão, 1 se encontrou solução ou -1
  * se não existir solução.
  * */
 int Prepare() {
@@ -630,16 +648,16 @@ int Prepare() {
       }
     }
   }
-  // Se o progama chega aqui é porque ChangePropagator não encontrou violação
+  // Se o programa chega aqui é porque ChangePropagator não encontrou violação
   // das regras.
   if (tendas_rest == 0)
     return 1;
   return 0;
 }
-/* Descrição: Lê de um ficheiro e resolve um problema de Tents And Trees com
- * procura de solução e escreve o resultado num ficheiro de saida.
+/* Descrição: Lê de um ficheiro e resolve um problema de Trees and Tents com
+ * procura de solução e escreve o resultado num ficheiro de saída.
  * Argumentos: Apontadores para o ficheiro com o problema e para o ficheiro de
- * saída. Retorno: 0 se não checgou a nenhuma conclusão, 1 se encontrou solução
+ * saída. Retorno: 0 se não chegou a nenhuma conclusão, 1 se encontrou solução
  * ou -1 se não existir solução. Retorno: -1 se ocorreu erro, 0 caso contrário.
  * */
 int Solver(FILE *fp_problema, FILE *fp_saida) {

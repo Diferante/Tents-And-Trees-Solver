@@ -32,7 +32,7 @@ struct _stack {
 };
 /* Description: Allocates a Stack object and initializes it with a table of the
  * specified size.
- * Arguments: The intial size of the stack in items, and the
+ * Arguments: The initial size of the stack in items, and the
  * size of each item in bytes.
  * Return: Pointer to the created Stack.
  * */
@@ -120,7 +120,7 @@ void push(Stack *stack, void *item) {
   if (stack == NULL)
     exit(0);
 
-  // Using local variables for readablity only, let the compiler micromanage
+  // Using local variables for readability only, let the compiler micromanage
   head = stack->head;
   i = stack->i;
   n = stack->n;
@@ -167,7 +167,7 @@ void pop(Stack *stack, void *dest) {
   if (stack == NULL || isStackEmpty(stack))
     exit(0);
 
-  // Using local variables for readablity only, let the compiler micromanage
+  // Using local variables for readability only, let the compiler micromanage
   head = stack->head;
   i = stack->i;
   n = stack->n;

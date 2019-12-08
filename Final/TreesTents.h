@@ -4,7 +4,7 @@
  *
  * DESCRIÇÃO
  *  Header de um implementação de funções de auxílio das funções em TentsSolver
- *  na resolução de problemas do jogo Tents and Trees.
+ *  na resolução de problemas do jogo Trees and Tents.
  *
  *  Lista de funções:
  *    A) Inicialização e Terminação
@@ -16,7 +16,7 @@
  *        beautify_matriz
  *		  check_adj_for_opens
  *
- *    D) Testes
+ *    C) Testes
  *        isTent
  *		  isPairedTent
  *		  isNewTent
@@ -29,6 +29,10 @@
  *		  Tenda nova com par 			NEW_T_PAIRED
  *		  Árvore sem par 				A
  *		  Árvore com par 				a
+ *
+ *	Dependências:
+ *    stdio.h
+ *    stdlib.h
  *
  *****************************************************************************/
 
