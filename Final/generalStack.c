@@ -3,7 +3,7 @@
  * Authors - Haohua Dong e Diogo Antunes
  *
  * DESCRIPTION
- *  Header file for a general implementation of a single type stack through a
+ *  Header file for a general implementation of a single type stack with a
  *  list of tables.
  *
  *  Implementation details:
@@ -27,7 +27,7 @@ struct node {
 };
 struct _stack {
   struct node *head;        // List of tables
-  unsigned int i;           // First empty space
+  unsigned int i;           // First empty space index
   unsigned int n;           // Current table size
   unsigned int itemSize;    // Size of each item to be stored.
   unsigned int initialSize; // Initial size of the Stack.
