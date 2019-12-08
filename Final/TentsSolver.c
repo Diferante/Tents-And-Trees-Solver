@@ -3,7 +3,8 @@
  * Autores - Haohua Dong e Diogo Antunes
  *
  * DESCRIÇÃO
- *  Implementação de um solucionador de problemas do jogo Trees and Tents.
+ *  Implementação de um gerador de soluções para problemas do jogo Trees and
+ *  Tents.
  *
  *
  *  Detalhes de implementação:
@@ -15,15 +16,23 @@
  *		procura apenas quando o verificador é inconclusivo. Na procura
  *		são registadas as alterações entre cada decisão de modo a
  *		permitir o backtracking para estados anteriores.
+ *		NEW_T_PAIRED e NEW_T_UNPAIRED são macros de TentsTrees.h.
+ *
+ * 	Código utilizado durante processamento:
+ *		  Tenda sem par já analisada	T
+ *		  Tenda com par já analisada	t
+ *		  Tenda nova sem par 			NEW_T_UNPAIRED
+ *		  Tenda nova com par 			NEW_T_PAIRED
+ *		  Árvore sem par 				A
+ *		  Árvore com par 				a
  *
  *****************************************************************************/
 
 #include "TreesTents.h"
+#include "generalStack.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
-#include "generalStack.h"
 
 char **Matriz;           // Matriz que representa o mapa
 unsigned int L;          // Linhas
@@ -669,7 +678,7 @@ int Solver(FILE *fp_problema, FILE *fp_saida) {
   if (Matriz == NULL)
     return -1;
 
-  arvores = Fill_Matriz_easy(fp_problema, Matriz, L, C);
+  arvores = Fill_Matriz(fp_problema, Matriz, L, C);
   // Se ocorreu erro
   if (arvores < 0) {
     fprintf(fp_saida, "%d %d %d\n\n", L, C, -1);

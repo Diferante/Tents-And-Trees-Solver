@@ -3,17 +3,15 @@
  * Authors - Haohua Dong e Diogo Antunes
  *
  * DESCRIPTION
- *  Header file for a general implementation of a single type stack with a
- *  list of tables.
+ *  A general implementation of a single type stack. The item's size must be
+ *  specified at runtime for Initialization and an item comparison function must
+ *  be supplied for Search.
  *
  *  Implementation details:
- *      This implementation can be used for single type stacks of any type.
- *      The item's size must be specified at runtime for Initialization and
- *      an item comparison function must be supplied for Search.
- *      
- *      When allocating more tables, the new table's size
- *      grows linearly.
- *      
+ *      The stack is implemented via a list of tables. When a table fills,
+ *      another one is allocated and the new table's size grows linearly. The
+ *      Stack always has at least the starting table allocated.
+ *
  *****************************************************************************/
 
 #include "generalStack.h"
@@ -22,8 +20,8 @@
 #include <string.h>
 
 struct node {
-  void *Items;              // Pointer to table of items
-  struct node *next;        // Pointer to next node.
+  void *Items;       // Pointer to table of items
+  struct node *next; // Pointer to next node.
 };
 struct _stack {
   struct node *head;        // List of tables

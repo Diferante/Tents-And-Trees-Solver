@@ -6,8 +6,6 @@
  *  Header de uma implementação de um solucionador de problemas do jogo Trees
  *	and Tents.
  *
- *
- *
  *****************************************************************************/
 
 #ifndef TENTSSOLVER_H_INCLUDED

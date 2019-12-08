@@ -5,13 +5,17 @@
  * DESCRIÇÃO
  *  Programa que utiliza o TentsSolver para resolver um conjunto de problemas
  *  do jogo Trees and Tents fornecidos num ficheiro .camp e cria um ficheiro
- *  .tents com os resultados.
+ *  .tents com os resultados. O programa não devolve nada para o terminal.
+ *
+ *  Utilização:
+ *      <nome_do_programa> nome_do_ficheiro_com_problema.camp
  *****************************************************************************/
+
+#include "TentsSolver.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "TentsSolver.h"
 
 #define BUFFER_SIZE 1024
 /* Abre o ficheiro */
@@ -30,19 +34,28 @@ void EscreveFicheiro(int L, int C, char variant, int resposta, FILE *fp2) {
   return;
 }
 
-// Descrição:
-// Argumentos:
-// Retorno: 1 se há mais problemas, 0 se não.
+/* Descrição: Lê do ficheiro, ignora eventuais restos de matriz de um problema
+ * anterior, até encontrar o início de outro problema ou chegar ao fim do
+ * ficheiro. Utiliza um buffer para ler em blocos. Assume que os primeiros
+ * números que encontrar são o cabeçalho do próximo problema, por isso não pode
+ * ser chamada se ainda sobrarem os vetores de números do problema anterior.
+ * Argumentos: Apontador para o ficheiro de entrada.
+ * Retorno: 1 se há mais problemas, 0 se não.
+ * */
 int Ha_mais_problemas(FILE *fp) {
-  int b;
-  int nbytes;
-  char buffer[BUFFER_SIZE];
+  int b;                    // Índice no buffer do char atual
+  int nbytes;               // Bytes lidos
+  char buffer[BUFFER_SIZE]; // Buffer de leitura
+  // Ler do ficheiro um bloco
   nbytes = fread(buffer, 1, BUFFER_SIZE, fp);
   b = -1;
   while (1) {
-    // Clear all untill number;
+    // O próximo problema será a primeira ocorrência de números
     for (b++; b < nbytes; b++) {
       if (buffer[b] >= '0' && buffer[b] <= '9') {
+        // Encontrou o próximo problema
+        // Retroceder o FILE* o que leu a mais, para o início do próximo
+        // problema
         fseek(fp, b - nbytes, SEEK_CUR);
         return 1;
       }
@@ -57,52 +70,57 @@ int Ha_mais_problemas(FILE *fp) {
   }
 }
 
-/*Função que lê e analisa os dados do ficheiro de entrada*/
-void LeituraDados(FILE *fp, FILE *fp2) {
+/* Descrição: Chama Solver de TentsSolver.h para resolver cada problema
+ * individual no ficheiro de entrada e escrever o seu resultado no ficheiro de
+ * saida.
+ * Argumentos: Apontadores para o ficheiro de entrada e o de saída.
+ * */
+void Resolucao(FILE *fp_in, FILE *fp_out) {
   while (1) {
-    Solver(fp, fp2);
+    Solver(fp_in, fp_out);
 
     /* verificar se há mais problemas no ficheiro de entrada */
-    if (!Ha_mais_problemas(fp))
+    if (!Ha_mais_problemas(fp_in))
       break;
   }
 }
-
+/* Descrição: Lê um ficheiro .camp recebido como argumento com um problema do
+ * jogo Tents and Trees, resolve-o com o Solver de TentsSolver.h e cria um
+ * ficheiro .tents para guardar o resultado.
+ * */
 int main(int argc, char *argv[]) {
   char *p;
-  FILE *fp, *fp2;
+  FILE *fp_in, *fp_out;
   char *ficheirosaida;
 
   if (argc < 2)
     exit(0);
 
-  /* verificar se o ficheiro de entrada tem extensão '.camp0' */
+  // verificar se o ficheiro de entrada tem extensão '.camp' 
   p = strrchr(argv[1], '.');
   if (p == NULL || strcmp(p, ".camp"))
     exit(0);
 
   /*Abertura do ficheiro de entrada*/
-  fp = AbreFicheiro(argv[1], "rb");
+  fp_in = AbreFicheiro(argv[1], "rb");
 
-  /*Alocar memória para o nome do ficheiro de saída*/
-  ficheirosaida = (char *)malloc((strlen(argv[1]) + 2) * sizeof(char));
+  // Ao passar de .camp para .tents é preciso mais 1 char
+  ficheirosaida = (char *)malloc(strlen(argv[1]) + 1 + 1);
   if (ficheirosaida == NULL)
     exit(0);
+
+  // Cria o nome do ficheiro de saída a partir do de entrada
   strcpy(ficheirosaida, argv[1]);
   p = strrchr(ficheirosaida, '.');
   strcpy(p, ".tents");
 
-  /*Abrir ficheiro de saída para escrever */
-  fp2 = AbreFicheiro(ficheirosaida, "w");
+  fp_out = AbreFicheiro(ficheirosaida, "w");
 
-  /* Análise de Dados */
-  LeituraDados(fp, fp2);
+  Resolucao(fp_in, fp_out);
 
-  /* Fechar Ficheiros */
-  fclose(fp);
-  fclose(fp2);
+  fclose(fp_in);
+  fclose(fp_out);
 
-  /* free memory */
   free(ficheirosaida);
 
   return 0;

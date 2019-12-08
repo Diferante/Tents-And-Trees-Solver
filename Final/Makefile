@@ -1,5 +1,7 @@
-# compiler
+# 2019-2020
+# Autores - Haohua Dong e Diogo Antunes
 
+# compiler
 CC = gcc
 CFLAGS = -Wall -std=c99 -O3 
 TARGET = campista
@@ -35,23 +37,17 @@ verify:
 	find tests/ -maxdepth 1 -name "*.camp" -execdir printf "Verifying {}:\t\t\t" \; -execdir sh -c './ranger {}; echo $$?' \;
 	@printf "done;\n"
 
-
 testmem:
 	reset
 	rm -f massifreport
 	valgrind  --stacks=yes --threshold=10.0 --massif-out-file=massifreport --tool=massif ./$(TARGET) test/boring27.camp 
 	ms_print --threshold=10.0 massifreport
 
-testa:
-	@printf "Starting time check;\n"
-	time for n in {1..10}; do ./$(TARGET) teste_017.camp0; done
-	diff teste_017.tents0 teste_017.sol
-	@printf "done;\n"
-
 testtime:
-	printf "Starting time check;\n"
-	time for n in {1..100}; do ./$(TARGET) memtests.camp0; done
-	printf "done;\n"
+	@printf "Starting time check;\n"
+	time for n in {1..100}; do ./$(TARGET) tests/boring27.camp; done
+	diff tests/boring27.tents tests/s/boring27.tents
+	@printf "done;\n"
 
 
 clean:

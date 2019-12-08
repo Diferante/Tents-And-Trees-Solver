@@ -5,7 +5,7 @@
  * DESCRIPTION
  *  Header file for a general implementation of a single type stack.
  *	The item's size must be specified at runtime for Initialization and
- *  an item comparison functions must be supplied for Search.
+ *  an item comparison function must be supplied for Search.
  *
  *  Function list:
  *    A) Initialization & Termination

@@ -1,43 +1,70 @@
+/******************************************************************************
+ * 2019-2020
+ * Autores - Haohua Dong e Diogo Antunes
+ *
+ * DESCRIÇÃO
+ *  Header de um implementação de funções de auxílio das funções em TentsSolver
+ *  na resolução de problemas do jogo Tents and Trees.
+ *
+ *  Lista de funções:
+ *    A) Inicialização e Terminação
+ *        Fill_Hints_checkSums
+ *        Fill_Matriz
+ *	      _free_matriz
+ *
+ *    B) Alteração da matriz
+ *        beautify_matriz
+ *		  check_adj_for_opens
+ *
+ *    D) Testes
+ *        isTent
+ *		  isPairedTent
+ *		  isNewTent
+ *		  sem_tendas_adj
+ *
+ *	Código utilizado durante processamento:
+ *		  Tenda sem par já analisada	T
+ *		  Tenda com par já analisada	t
+ *		  Tenda nova sem par 			NEW_T_UNPAIRED
+ *		  Tenda nova com par 			NEW_T_PAIRED
+ *		  Árvore sem par 				A
+ *		  Árvore com par 				a
+ *
+ *****************************************************************************/
+
 #ifndef TREESTENTS_H_INCLUDED
 #define TREESTENTS_H_INCLUDED
 
 #include <stdio.h>
 
-/*#define T 'T'
-#define A 'A'
-#define O '0'
-#define t 't'
-#define a 'a'
-//Celulas para backtrack do Guesser:
-	pontos: 1 - 9 
-*/
-#define TMP_T 'G'
-#define TMP_A 'H'
-#define NEW_T_PAIRED 'n'
 #define NEW_T_UNPAIRED 'N'
+#define NEW_T_PAIRED 'n'
 
+
+/* Descrição: Liberta a matriz de L linhas.
+ * */
 void _free_matriz(char **Matriz, int L);
 
-void handle_int(int res, int i, int *somaL, int *somaC, int *Lrests,
-                int *Crests, int L, int C);
-// Descrição: Lẽ as hints do ficheiro e soma os vetores.
-// Argumentos:
-// Retorno: -2 se ocorrer erro, se não devolve o número de tendas ou -1 caso os
-// vetores sejam coerentes.
+/* Descrição: Lê os vetores com as Hints, o número de tendas em cada linha e
+ * coluna, de um ficheiro, guarda-os e calcula a sua soma.
+ * Argumentos: Apontador para o ficheiro de entrada, número de linhas e colunas
+ * da matriz e apontadores para os vetores onde guardar as Hints.
+ * Retorno: -2 se ocorrer erro, -1 se os vetores forem incoerentes ou alguma
+ * Hint for negativa, caso contrário o número de tendas.
+ * */
 int Fill_Hints_checkSums(FILE *fp, int L, int C, int *Lrests, int *Crests);
 
-// Descrição: Lê a matriz do ficheiro e conta as árvores.
-// Argumentos:
-// Retorno: O número de árvores se ler bem, -1 se chegar ao fim do ficheiro ou
-// erro de alocação.
-int Fill_Matriz_easy(FILE *fp, char **Matriz, int L, int C);
+/* Descrição: Lê a matriz do ficheiro, guarda-a e conta as árvores.
+ * Argumentos:
+ *  fp          - Apontador para o ficheiro com a Matriz.
+ *  Matriz      - Apontador para uma tabela de L apontadores para char onde
+ *                guardar a matriz lida.
+ *  L e C       - Números de linhas e colunas da matriz.
+ * Retorno: O número de árvores se ler bem, -1 se ocorrer erro de
+ * alocação ou leitura.
+ * */
+int Fill_Matriz(FILE *fp, char **Matriz, int L, int C);
 
-void move_dir(int *l_out, int *c_out, char dir);
-
-// Descrição: Determina se esta tenda possui árvores adjacentes disponíveis.
-// Altera a matriz. Argumentos: Linha e coluna da tenda. Retorno: 0 caso a tenda
-// tenha árvore disponível, 1 caso contrário.
-char isT_alone_iter(int l0, int c0, char **Matriz, int L, int C);
 /* Descrição: 1 se c for uma tenda, 0 se não.
  * */
 int isTent(char c);
@@ -45,32 +72,30 @@ int isTent(char c);
 /* Descrição: 1 se c for uma tenda com par, 0 se não.
  * */
 int isPairedTent(char c);
+
 /* Descrição: 1 se c for uma nova tenda, 0 se não.
  * */
-int isNewTent(char c) ;
-void repair_matriz(char **Matriz, int L, int C);
+int isNewTent(char c);
 
-/* Descrição: Prepara matriz para escrita,
- * troca os char's de processamento para os seus valores finais.
+/* Descrição: Prepara matriz para saída, troca os char's de processamento para
+ * os seus valores finais.
+ * Argumentos: Apontador para a Matriz e os números de linhas e colunas da
+ * matriz.
  * */
 void beautify_matriz(char **Matriz, int L, int C);
 
-/* atualiza os Opens around (x, y)*/
-void add_around(int x, int y, int value, char **Matriz, int L, int C);
-
-// Ferramenta para debug
-void printMatriz(char **Matriz, int L, int C);
-
-/* Descrição: Verifica se pode haver tenda nas quatro direções,
- * coloca '0' nos que puderem
- * Argumentos: Posição (x,y) da árvore a ser verificada
+/* Descrição: Verifica se pode haver alguma tenda nas quatro direções de uma
+ * árvore, marca como open se for possível.
+ * Argumentos: Posição (x,y) da árvore, apontador para Matriz, os números de
+ * linhas e colunas da matriz e os vetores com as tendas de cada linha e coluna.
  * */
 void check_adj_for_opens(int x, int y, char **Matriz, int L, int C, int *Lrests,
                          int *Crests);
-/* Descrição: Verifica tendas em todas posições adjacentes
- * Argumentos: Posição (x,y) do mapa
+/* Descrição: Verifica se existem tendas em todas posições adjacentes.
+ * Argumentos: Posição (x,y) da tenda, apontador para a matriz e os números de
+ * linhas e colunas da matriz.
  * Retorno: Retorna 0 se existir pelo menos uma tenda na adjacência, 1 se não
- * existir nenhuma tenda
+ * existir nenhuma tenda.
  * */
 int sem_tendas_adj(int x, int y, char **Matriz, int L, int C);
 
