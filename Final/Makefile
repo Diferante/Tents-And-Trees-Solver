@@ -1,5 +1,5 @@
 # 2019-2020
-# Autores - Haohua Dong e Diogo Antunes
+# Authors - Haohua Dong e Diogo Antunes
 
 # compiler
 CC = gcc
@@ -32,22 +32,11 @@ check:
 	find tests -maxdepth 1 -name "*.tents" -execdir echo Errors in {}: \; -execdir diff {} s/{} \;
 	@printf "done;\n"
 
-verify:
-	@printf "Starting verifications;\n"
-	find tests -maxdepth 1 -name "*.camp" -execdir printf "Verifying {}:\t\t\t" \; -execdir sh -c './ranger {}; echo $$?' \;
-	@printf "done;\n"
-
 testmem:
 	reset
 	rm -f massifreport
 	valgrind  --stacks=yes --threshold=10.0 --massif-out-file=massifreport --tool=massif ./$(TARGET) test/boring27.camp 
 	ms_print --threshold=10.0 massifreport
-
-testtime:
-	@printf "Starting time check;\n"
-	time for n in {1..100}; do ./$(TARGET) tests/boring27.camp; done
-	diff tests/boring27.tents tests/s/boring27.tents
-	@printf "done;\n"
 
 gettimedataF:
 	@printf "Starting time check;\n"	
