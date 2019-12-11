@@ -19,22 +19,22 @@ debug: campista
 valtest: 
 	rm -f tests/*.tents
 	@printf "Starting tests;\n"
-	find tests/ -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
+	find tests -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec valgrind -q --leak-check=full ./$(TARGET) {} \;
 	@printf "done;\n"
 test: 
 	rm -f tests/*.tents
 	@printf "Starting tests;\n"
-	find tests/ -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec ./$(TARGET) {} \;
+	find tests -maxdepth 1 -name "*.camp"  -exec echo {} \; -exec ./$(TARGET) {} \;
 	@printf "done;\n"
 
 check:
 	@printf "Starting checks;\n"
-	find tests/ -maxdepth 1 -name "*.tents" -execdir echo Errors in {}: \; -execdir diff {} s/{} \;
+	find tests -maxdepth 1 -name "*.tents" -execdir echo Errors in {}: \; -execdir diff {} s/{} \;
 	@printf "done;\n"
 
 verify:
 	@printf "Starting verifications;\n"
-	find tests/ -maxdepth 1 -name "*.camp" -execdir printf "Verifying {}:\t\t\t" \; -execdir sh -c './ranger {}; echo $$?' \;
+	find tests -maxdepth 1 -name "*.camp" -execdir printf "Verifying {}:\t\t\t" \; -execdir sh -c './ranger {}; echo $$?' \;
 	@printf "done;\n"
 
 testmem:
@@ -47,6 +47,16 @@ testtime:
 	@printf "Starting time check;\n"
 	time for n in {1..100}; do ./$(TARGET) tests/boring27.camp; done
 	diff tests/boring27.tents tests/s/boring27.tents
+	@printf "done;\n"
+
+gettimedataF:
+	@printf "Starting time check;\n"	
+	find floresta4 -maxdepth 1 -name "*.camp"  -exec ./$(TARGET) {} \;	
+	@printf "done;\n"
+
+gettimedataE:
+	@printf "Starting time check;\n"	
+	find enunciado8 -maxdepth 1 -name "*.camp"  -exec ./$(TARGET) {} \;	
 	@printf "done;\n"
 
 

@@ -8,14 +8,14 @@
  *
  *
  *  Detalhes de implementação:
- *		Para encontrar uma solução são utilizados um verificador das
- *		regras de jogo, ChangePropagator, e um algoritmo de procura de
- *		solução, Guesser. Tenta-se primeiro determinar a solução
- *		diretamente com o verificador, utilizando a procura apenas
- *		quando o verificador é inconclusivo. Na procura são registadas
- *		as alterações entre cada decisão de modo a permitir o
- *		backtracking para estados anteriores.
- *		NEW_T_PAIRED e NEW_T_UNPAIRED são macros de TentsTrees.h.
+ *    Para encontrar uma solução são utilizados um verificador das
+ *    regras de jogo, ChangePropagator, e um algoritmo de procura de
+ *    solução, Guesser. Tenta-se primeiro determinar a solução
+ *    diretamente com o verificador, utilizando a procura apenas
+ *    quando o verificador é inconclusivo. Na procura são registadas
+ *    as alterações entre cada decisão de modo a permitir o
+ *    backtracking para estados anteriores.
+ *    NEW_T_PAIRED e NEW_T_UNPAIRED são macros de TentsTrees.h.
  *
  *  Código utilizado durante processamento:
  *      Tenda sem par já analisada  T
@@ -25,7 +25,7 @@
  *      Árvore sem par              A
  *      Árvore com par              a
  *      Ponto                       .
- *      Tenda ou Ponto = Open       0   
+ *      Tenda ou Ponto = Open       0
  *
  *****************************************************************************/
 
@@ -64,7 +64,7 @@ int PointsAreEqual(void *p1, void *p2) {
          ((Point *)p1)->y == ((Point *)p2)->y;
 }
 
-/* Descrição: Regista a alterção de um ponto para permitir backtracking.
+/* Descrição: Regista a alteração de um ponto para permitir backtracking.
  * */
 void regista_alteracao(Point point, char old_char) {
   // Se o ponto já foi alterado desde o último snapshot já está registado como
@@ -133,15 +133,14 @@ int AnalyseLinhaColunaLimits(Point ponto) {
       if (Matriz[p.x][p.y] == '0') {
         comprimento++;
       } else if (comprimento != 0) {
-        // Blocos de n par opens podem conter n/2 tendas, e blocos de n ímpar
-        // opens podem conter n/2 +1 tendas
-        espacos_livres += comprimento / 2 + comprimento % 2;
+        // Blocos de n opens podem conter (n +1)/2 tendas
+        espacos_livres += (comprimento + 1) / 2;
         comprimento = 0;
       }
     }
     // se o último char for open ainda falta adicionar o último bloco
     if (comprimento != 0) {
-      espacos_livres += comprimento / 2 + comprimento % 2;
+      espacos_livres += (comprimento + 1) / 2;
     }
     if (espacos_livres < Lrests[p.x])
       return -1;
@@ -190,15 +189,14 @@ int AnalyseLinhaColunaLimits(Point ponto) {
       if (Matriz[p.x][p.y] == '0') {
         comprimento++;
       } else if (comprimento != 0) {
-        // Blocos de n par opens podem conter n/2 tendas, e blocos de n ímpar
-        // opens podem conter n/2 +1 tendas
-        espacos_livres += comprimento / 2 + comprimento % 2;
+        // Blocos de n opens podem conter (n +1)/2 tendas
+        espacos_livres += (comprimento + 1) / 2;
         comprimento = 0;
       }
     }
     // se o último char for open ainda falta adicionar o último bloco
     if (comprimento != 0) {
-      espacos_livres += comprimento / 2 + comprimento % 2;
+      espacos_livres += (comprimento + 1) / 2;
     }
 
     if (espacos_livres < Crests[p.y])
@@ -275,11 +273,11 @@ int AnalyseTent(Point tent, int isPaired, int isNew) {
           return -1;
         } else { // Se é adjacente não diagonal
           if (p.x == tent.x || p.y == tent.y) {
-
             if (Matriz[p.x][p.y] == 'A') {
               arvores_sem_par++;
               a = p;
               if (isPaired && epoca_alta)
+                // Ver se a árvore ficou só com um possível par
                 push(points_toAnalyse, &a);
             }
           }
@@ -517,8 +515,8 @@ int ChangePropagator(int x, int y, int line_column_test) {
   return res;
 }
 /* Descrição: Encontra uma solução para um problema em que o ChangePropagator
- * não consiga tirar conclusões inevitáveis. Faz uma procura depth-first de
- * entre os vários estados do mapa em que cada open pode ou não ter tenda.
+ * não consiga tirar conclusões inevitáveis. Implementa uma procura depth-first
+ * de entre os vários estados do mapa em que cada open pode ou não ter tenda.
  * Utiliza o Change Propagator para encontrar o estado resultante de cada
  * decisão tomada e as funções de backtracking para voltar aos estados
  * anteriores quando um estado não é legal.
@@ -571,6 +569,7 @@ int Guesser() {
         return -1; // Impossível
       }
       revert_snapshot();
+
       // Se não pode ser tenda o open é '.'
       pop(jogadas, &p);
       tendas_rest++;
@@ -618,6 +617,7 @@ int Prepare() {
       }
     }
   }
+
   // Avalia se há espaços livres suficientes em cada linha e coluna
   i = 0;
   // Diagonais primeiro para evitar repetir linhas ou colunas
@@ -659,8 +659,8 @@ int Prepare() {
 /* Descrição: Lê de um ficheiro e resolve um problema de Trees and Tents com
  * procura de solução e escreve o resultado num ficheiro de saída.
  * Argumentos: Apontadores para o ficheiro com o problema e para o ficheiro de
- * saída. Retorno: 0 se não chegou a nenhuma conclusão, 1 se encontrou solução
- * ou -1 se não existir solução. Retorno: -1 se ocorreu erro, 0 caso contrário.
+ * saída.
+ * Retorno: -1 se ocorreu erro, 0 caso contrário.
  * */
 int Solver(FILE *fp_problema, FILE *fp_saida) {
   int i, j, res;
@@ -669,6 +669,7 @@ int Solver(FILE *fp_problema, FILE *fp_saida) {
     return -1;
   if (fscanf(fp_problema, " %d", &C) != 1)
     return -1;
+
   Lrests = (int *)malloc(L * sizeof(int));
   if (Lrests == NULL)
     return -1;
@@ -705,7 +706,7 @@ int Solver(FILE *fp_problema, FILE *fp_saida) {
     free(Crests);
     free(Lrests);
     _free_matriz(Matriz, L);
-    return 0;
+    return -1;
   }
   if (tendas_rest > arvores) {
     // Tem de haver pelo menos uma árvore por tenda
@@ -713,7 +714,7 @@ int Solver(FILE *fp_problema, FILE *fp_saida) {
     free(Lrests);
     free(Crests);
     _free_matriz(Matriz, L);
-    return -1;
+    return 0;
   }
 
   epoca_alta = tendas_rest == arvores;
@@ -738,7 +739,6 @@ int Solver(FILE *fp_problema, FILE *fp_saida) {
     _free_matriz(Matriz, L);
     return 0;
   }
-
   // Como Prepare não foi conclusivo é preciso procurar de entre os estados
   // possíveis
   res = Guesser();

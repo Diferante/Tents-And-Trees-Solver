@@ -12,7 +12,6 @@
  *****************************************************************************/
 
 #include "TentsSolver.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,12 +25,6 @@ FILE *AbreFicheiro(char *ficheiro, char *mode) {
     exit(0);
 
   return (fp);
-}
-
-/* Escreve os dados no ficheiro de saída */
-void EscreveFicheiro(int L, int C, char variant, int resposta, FILE *fp2) {
-  fprintf(fp2, "%d %d %c %d\n", L, C, variant, resposta);
-  return;
 }
 
 /* Descrição: Lê do ficheiro, ignora eventuais restos de matriz de um problema
@@ -78,7 +71,8 @@ int Ha_mais_problemas(FILE *fp) {
  * */
 void Resolucao(FILE *fp_in, FILE *fp_out) {
   while (1) {
-    Solver(fp_in, fp_out);
+
+      Solver(fp_in, fp_out);
 
     /* verificar se há mais problemas no ficheiro de entrada */
     if (!Ha_mais_problemas(fp_in))

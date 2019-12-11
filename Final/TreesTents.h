@@ -46,7 +46,6 @@
 #define NEW_T_UNPAIRED 'N'
 #define NEW_T_PAIRED 'n'
 
-
 /* Descrição: Liberta a matriz de L linhas.
  * */
 void _free_matriz(char **Matriz, int L);
